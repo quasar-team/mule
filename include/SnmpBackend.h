@@ -77,7 +77,7 @@ private:
 	std::string oidToString(const oid * objid, size_t objidlen, const netsnmp_variable_list * variable);
 
 public:
-	std::vector<Oid> snmpDeviceWalk ( const std::string& oidOfInterest );
+	std::vector<Oid> snmpDeviceWalk ( const std::string& seedOid );
 	netsnmp_pdu * snmpGetNext( const std::string& oidOfInterest );
 	SnmpStatus snmpSet( const std::string& oidOfInterest, std::variant<int,std::string, bool> & value );
 	netsnmp_pdu * snmpGet( const std::string& oidOfInterest );

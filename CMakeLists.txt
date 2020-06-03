@@ -25,9 +25,9 @@
 # (INCLUDING  NEGLIGENCE OR OTHERWISE)  ARISING IN ANY WAY OUT OF  THE USE OF THIS
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-message(STATUS "Building SnmpModule")
+message(STATUS "Building Mule")
 
-project(LoSnmpModule CXX)
+project(Mule CXX)
 cmake_minimum_required(VERSION 3.0)
 
 # C++ standard set
@@ -36,7 +36,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 include_directories( include )
 
-add_library( SnmpModule OBJECT
+add_library( Mule OBJECT
              src/Oid.cpp
              src/SnmpBackend.cpp 
             )
