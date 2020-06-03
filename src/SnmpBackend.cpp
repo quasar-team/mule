@@ -204,18 +204,18 @@ void SnmpBackend::closeSession ()
 std::vector<Oid> SnmpBackend::snmpDeviceWalk ( const std::string& seedOid )
 {
 
-	LOG(Log::INF) << "SNMP device walk seed OID:" << seedOid << " on ATCA: " << m_hostname;
+	LOG(Log::INF) << "SNMP device walk seed OID:" << seedOid << " on device: " << m_hostname;
 
 	netsnmp_variable_list *vars;
 	netsnmp_pdu * response = snmpGetNext ( seedOid );
 
-	Snmp::Oid currentAtcaOid( seedOid );
-	Snmp::Oid nextAtcaOid( seedOid );
+	Snmp::Oid currentDeviceOid( seedOid );
+	Snmp::Oid nextDeviceOid( seedOid );
 
-	if ( nextAtcaOid.getOidSize() == 14)
+	if ( nextDeviceOid.getOidSize() == 14)
 	{
-		currentAtcaOid.setSensor(true);
-		nextAtcaOid.setSensor(true);
+		currentDeviceOid.setSensor(true);
+		nextDeviceOid.setSensor(true);
 	}
 
 	std::vector<Oid> walkedOids;
@@ -227,31 +227,31 @@ std::vector<Oid> SnmpBackend::snmpDeviceWalk ( const std::string& seedOid )
 		{
 			for(vars = response->variables; vars; vars = vars->next_variable)
 			{
-				currentAtcaOid = nextAtcaOid;
-				nextAtcaOid.assign( oidToString(vars->name, vars->name_length, vars) );
+				currentDeviceOid = nextDeviceOid;
+				nextDeviceOid.assign( oidToString(vars->name, vars->name_length, vars) );
 			}
 
 			snmp_free_pdu(response);
 
-			if ( ( currentAtcaOid.getVariable() != nextAtcaOid.getVariable() && currentAtcaOid.getVariable() != 0 ) ||
-					currentAtcaOid.getDeviceType() != nextAtcaOid.getDeviceType() ||
-					!nextAtcaOid.getOidValidity() )
+			if ( ( currentDeviceOid.getVariable() != nextDeviceOid.getVariable() && currentDeviceOid.getVariable() != 0 ) ||
+					currentDeviceOid.getDeviceType() != nextDeviceOid.getDeviceType() ||
+					!nextDeviceOid.getOidValidity() )
 				break;
 
-			if ( currentAtcaOid.isSensor() &&
-					nextAtcaOid.getDeviceNum() != currentAtcaOid.getDeviceNum() )
+			if ( currentDeviceOid.isSensor() &&
+					nextDeviceOid.getDeviceNum() != currentDeviceOid.getDeviceNum() )
 				break;
 
-			walkedOids.push_back(nextAtcaOid);
-			if ( nextAtcaOid.isSensor() )
+			walkedOids.push_back(nextDeviceOid);
+			if ( nextDeviceOid.isSensor() )
 			{
-				LOG(Log::TRC) << nextAtcaOid.getSensorOid();
-				response = snmpGetNext ( nextAtcaOid.getSensorOid() );
+				LOG(Log::TRC) << nextDeviceOid.getSensorOid();
+				response = snmpGetNext ( nextDeviceOid.getSensorOid() );
 			}
 			else
 			{
-				LOG(Log::TRC) << nextAtcaOid.getOid();
-				response = snmpGetNext ( nextAtcaOid.getOid() );
+				LOG(Log::TRC) << nextDeviceOid.getOid();
+				response = snmpGetNext ( nextDeviceOid.getOid() );
 			}
 
 
