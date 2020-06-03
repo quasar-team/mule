@@ -40,16 +40,6 @@ namespace Snmp
 
 	std::string const ROOT_OID = "1.3.6.1.4.1.16394.2.1.1.";
 
-	std::string const BOARD_OID = ROOT_OID + "32.1";
-	std::string const FANTRAY_OID = ROOT_OID + "33.1";
-	std::string const POWERSUPPLY_OID = ROOT_OID + "34.1";
-	std::string const SHELFMANAGER_OID = ROOT_OID + "35.1";
-	std::string const XTCAPEM_OID = ROOT_OID + "43.1";
-	std::string const XTCAPOWERSUPPLY_OID = ROOT_OID + "44.1";
-
-	std::string const IPMC_OID = ROOT_OID + "1.1";
-	std::string const SENSOR_OID = ROOT_OID + "3.1";
-
 	int const SNMP_TIMEOUT = 1000000;
 	int const SNMP_MAX_RETRIES = 2;
 
