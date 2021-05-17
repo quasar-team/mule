@@ -40,4 +40,5 @@ add_library( mule OBJECT
              src/Oid.cpp
              src/SnmpBackend.cpp
              src/SnmpGetAncillary.cpp 
+             src/MuleLogComponents.cpp
             )
