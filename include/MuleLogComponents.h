@@ -1,11 +1,11 @@
 /* 
  * @author:     Paris Moschovakos <paris.moschovakos@cern.ch>
  * 
- * @copyright:  2020 CERN
+ * @copyright:  2021 CERN
  * 
  * @license:
  * LICENSE:
- * Copyright (c) 2020, CERN
+ * Copyright (c) 2021, CERN
  * All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without modification,
@@ -30,62 +30,20 @@
 
 #pragma once
 
-#include <string>
+#include <LogIt.h>
 
-namespace Snmp
+namespace Mule
 {
 
-	namespace Constants
-	{
+class LogComponentLevels
+{
+public:
+    static Log::LogComponentHandle snmpBackend() { return s_snmpBackend; }
 
-	int const SNMP_TIMEOUT = 1000000;
-	int const SNMP_MAX_RETRIES = 2;
+    static void initializeMule(Log::LOG_LEVEL initialLogLevel = Log::LOG_LEVEL::INF);
 
-    enum SecurityLevel
-    {
-    	NO_AUTH_NO_PRIV = 1,
-		AUTH_NO_PRIV = 2,
-		AUTH_PRIV = 3
-    };
-
-    enum Pdu
-    {
-        GET = 0,
-        SET = 1,
-        GET_NEXT = 2,
-        GET_BULK = 3,
-        TRAP = 4,
-        INFORM = 5
-    };
-
-    enum Errors
-    {
-        NO_SUCH_NAME = 0,
-        BAD_VALUE = 1,
-        TOO_BIG = 2,
-        GENERIC_ERROR = 3,
-        // SNMP v2 +
-        WRONG_VALUE = 4,
-        WRONG_ENCODING = 5,
-        WRONG_TYPE = 6,
-        WRONG_LENGTH = 7,
-        INCONSISTENT_VALUE = 8,
-        NO_ACCESS = 9,
-        NOT_WRITABLE = 10,
-        NO_CREATION = 11,
-        INCONSISTENT_NAME = 12,
-        RESOURCE_UNAVAILABLE = 13,
-        COMMIT_FAILED = 14,
-        UNDO_FAILED = 15
-
-    };
-
-    enum Exceptions
-    {
-        NO_SUCH_OBJECT = 0,
-        NO_SUCH_INSTANCE = 1
-    };
-
-  }
+private:
+    static Log::LogComponentHandle s_snmpBackend;
+};
 
 }

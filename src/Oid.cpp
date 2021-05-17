@@ -29,10 +29,12 @@
  */
 
 #include <Oid.h>
-#include <LogIt.h>
+#include <MuleLogComponents.h>
+
 #include <vector>
 
 using namespace Snmp;
+using Mule::LogComponentLevels;
 
 Oid::Oid() : m_deviceTypeOid(0), m_subDeviceTypeOid(0), m_variableOid(0), m_deviceNumOid(0), m_sequenceNumOid(0)
 {
@@ -74,11 +76,11 @@ void Oid::assign ( std::string oidOfInterest )
 	if ( oidPart.at(6) != "16394" )
 	{
 		m_valid = false;
-		LOG(Log::DBG) << "Wrong OID provided: " << oidOfInterest;
+		LOG(Log::DBG, LogComponentLevels::snmpBackend()) << "Wrong OID provided: " << oidOfInterest;
 	}
 	else if ( m_oidSize == 12 )
 	{
-		LOG(Log::DBG) << "Seed for discovering a device was provided: " << oidOfInterest;
+		LOG(Log::DBG, LogComponentLevels::snmpBackend()) << "Seed for discovering a device was provided: " << oidOfInterest;
 		m_deviceTypeOid = stoi(oidPart.at(10));
 		m_subDeviceTypeOid = stoi(oidPart.at(11));
 		m_variableOid = 0;
@@ -86,7 +88,7 @@ void Oid::assign ( std::string oidOfInterest )
 	}
 	else if ( m_oidSize == 14 ) // This can also be a seed for sensors
 	{
-		LOG(Log::DBG) << "Full OID provided or seed for discovering sensors: " << oidOfInterest;;
+		LOG(Log::DBG, LogComponentLevels::snmpBackend()) << "Full OID provided or seed for discovering sensors: " << oidOfInterest;;
 		m_deviceTypeOid = stoi(oidPart.at(10));
 		m_subDeviceTypeOid = stoi(oidPart.at(11));
 		m_variableOid = stoi(oidPart.at(12));
@@ -94,7 +96,7 @@ void Oid::assign ( std::string oidOfInterest )
 	}
 	else if ( m_oidSize == 15 )
 	{
-		LOG(Log::DBG) << "Full sensor OID provided: " << oidOfInterest;
+		LOG(Log::DBG, LogComponentLevels::snmpBackend()) << "Full sensor OID provided: " << oidOfInterest;
 		m_deviceTypeOid = stoi(oidPart.at(10));
 		m_subDeviceTypeOid = stoi(oidPart.at(11));
 		m_variableOid = stoi(oidPart.at(12));
@@ -104,9 +106,7 @@ void Oid::assign ( std::string oidOfInterest )
 	}
 	else
 	{
-		LOG(Log::ERR) << "Unknown OID size:"  << oidOfInterest;
+		LOG(Log::ERR, LogComponentLevels::snmpBackend()) << "Unknown OID size:"  << oidOfInterest;
 	}
 }
-
-std::string const Oid::s_rootOid = "1.3.6.1.4.1.16394.2.1.1";
 

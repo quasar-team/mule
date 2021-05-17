@@ -48,7 +48,7 @@ public:
 	virtual ~Oid();
 
 private:
-	static std::string const s_rootOid;
+	std::string m_rootOid;
 	unsigned int m_deviceTypeOid;
 	unsigned int m_subDeviceTypeOid;
 	unsigned int m_variableOid;
@@ -60,7 +60,7 @@ private:
 
 public:
 
-	std::string getOid() { return s_rootOid +
+	std::string getOid() { return m_rootOid +
 			"." + std::to_string(m_deviceTypeOid) +
 			"." + std::to_string(m_subDeviceTypeOid) +
 			"." + std::to_string(m_variableOid) +
