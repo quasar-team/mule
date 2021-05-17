@@ -1,16 +1,16 @@
 # Readme and how to use instructions
 
-This Mule, a module for quasar servers that interfaces to SNMP devices.
+This is mule, a module for quasar servers that interfaces to SNMP devices.
 The module is hardware agnostic.
 
 In order to deploy it please follow the steps described below:
 
-## Setup quasar project with Mule
+## Setup quasar project with mule
 
-* There are 2 files that play a role here. First we need to take care of ```ProjectSettings.cmake```. We should set a new ```CUSTOM_SERVER_MODULES``` by declaring Mule.
+* There are 2 files that play a role here. First we need to take care of ```ProjectSettings.cmake```. We should set a new ```CUSTOM_SERVER_MODULES``` by declaring mule.
 
 ```
-set(CUSTOM_SERVER_MODULES Mule)
+set(CUSTOM_SERVER_MODULES mule)
 ```
 
 * We will also need to declare where the link libraries for Net-SNMP are located if they are not already accessible. To do that we need to 
