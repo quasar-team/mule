@@ -27,7 +27,7 @@
 
 message(STATUS "Building Mule")
 
-project(Mule CXX)
+project(mule CXX)
 cmake_minimum_required(VERSION 3.0)
 
 # C++ standard set
@@ -36,7 +36,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 include_directories( include )
 
-add_library( Mule OBJECT
+add_library( mule OBJECT
              src/Oid.cpp
              src/SnmpBackend.cpp 
             )

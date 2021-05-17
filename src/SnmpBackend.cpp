@@ -404,7 +404,7 @@ netsnmp_pdu * SnmpBackend::snmpGetNext( const std::string& oidOfInterest )
 	}
 	catch (const std::exception& e)
 	{
-		LOG(Log::ERR) << e.what();
+		LOG(Log::ERR) << "With SNMP status: " << status << ". " << e.what();
 	}
 
 	return response;
@@ -476,4 +476,40 @@ std::string SnmpBackend::oidToString(const oid * objid, size_t objidlen, const n
 	oid.assign(buf, MAX_OID_LEN);
 	oid = oid.substr(0, oid.find_first_of(" "));
 	return oid;
+}
+
+std::pair<OpcUa_StatusCode, OpcUa_Int32> SnmpBackend::oidToInt( const std::string& oidOfInterest )
+{
+
+	netsnmp_variable_list *vars;
+	OpcUa_Int32 value(0);
+	netsnmp_pdu * response = snmpGet ( oidOfInterest );
+
+	if (response)
+	{
+
+		/* manipulate the information ourselves */
+		for(vars = response->variables; vars; vars = vars->next_variable)
+		{
+			if (vars->type == ASN_INTEGER)
+			{
+				value = *vars->val.integer;
+				if (response) snmp_free_pdu(response);
+				return std::pair<OpcUa_StatusCode, OpcUa_Int32>(OpcUa_Good, value);
+			}
+			else
+			{
+				LOG(Log::TRC) << "There is no such variable name in this MIB. Type: 0x" << std::hex << (int)(vars->type)
+								<< ". Failed OID: " << oidOfInterest;
+				if (response) snmp_free_pdu(response);
+				return std::pair<OpcUa_StatusCode, OpcUa_Int32>(OpcUa_BadNoDataAvailable, value);
+			}
+		}
+
+		snmp_free_pdu(response);
+
+	}
+
+	return std::pair<OpcUa_StatusCode, OpcUa_Int32>(OpcUa_Bad, value);
+
 }

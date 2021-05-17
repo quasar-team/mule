@@ -38,9 +38,12 @@
 #include <Oid.h>
 #include <SnmpStatus.h>
 
+#include <statuscode.h>
 #include<variant>
 
 namespace Snmp{
+
+typedef std::variant<int,std::string, bool> snmpSetValue;
 
 class SnmpBackend {
 
@@ -78,8 +81,10 @@ private:
 
 public:
 	std::vector<Oid> snmpDeviceWalk ( const std::string& seedOid );
+	std::pair<OpcUa_StatusCode, OpcUa_Int32> oidToInt( const std::string& oidOfInterest );
+
 	netsnmp_pdu * snmpGetNext( const std::string& oidOfInterest );
-	SnmpStatus snmpSet( const std::string& oidOfInterest, std::variant<int,std::string, bool> & value );
+	SnmpStatus snmpSet( const std::string& oidOfInterest, snmpSetValue & value );
 	netsnmp_pdu * snmpGet( const std::string& oidOfInterest );
 
 	void closeSession ();

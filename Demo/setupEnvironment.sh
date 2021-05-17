@@ -41,27 +41,14 @@ if isCentOS; then
     #	CVMFS setup | Using newer gcc from LCG
     echo "Resolving dependencies from CVMFS..."
 
-    #  First the compiler
-		if [ -e /cvmfs/sft.cern.ch/lcg/contrib/gcc/9.2.0/x86_64-centos7/setup.sh ]; then
-    		# source /cvmfs/sft.cern.ch/lcg/contrib/gcc/9.2.0/x86_64-centos7/setup.sh
-        source /cvmfs/sft.cern.ch/lcg/contrib/gcc/8.3.0/x86_64-centos7/setup.sh
-        # source /cvmfs/sft.cern.ch/lcg/contrib/gcc/6.2.0/x86_64-centos7/setup.sh
-		fi
-    #  Then CMake
-		if [ -e /cvmfs/sft.cern.ch/lcg/releases/LCG_97/CMake/3.14.3/x86_64-centos7-gcc9-opt/CMake-env.sh ]; then
-			# source /cvmfs/sft.cern.ch/lcg/releases/LCG_97/CMake/3.14.3/x86_64-centos7-gcc9-opt/CMake-env.sh
-      source /cvmfs/sft.cern.ch/lcg/releases/LCG_97/CMake/3.14.3/x86_64-centos7-gcc8-opt/CMake-env.sh
-      # source /cvmfs/sft.cern.ch/lcg/releases/LCG_87/CMake/3.5.2/x86_64-centos7-gcc62-opt/CMake-env.sh
-      echo "CMake, configured successfully!"
-		fi
-    #  Then point to boost
-    # export BOOST_ROOT="/cvmfs/sft.cern.ch/lcg/releases/Boost/1.72.0-d1982/x86_64-centos7-gcc9-opt"
-    export BOOST_ROOT="/cvmfs/sft.cern.ch/lcg/releases/Boost/1.72.0-d1982/x86_64-centos7-gcc8-opt"
-    # export BOOST_ROOT="/cvmfs/sft.cern.ch/lcg/releases/LCG_87/Boost/1.62.0/x86_64-centos7-gcc62-opt"
-    #  Anything else?
-    export NETSNMP_HEADERS=
-    export NETSNMP_LIBS_DIRECTORIES=
-    export NETSNMP_LIBS="-lnetsnmp"
+    # Sourcing binutils which also take care of the gcc
+    source /cvmfs/sft.cern.ch/lcg/contrib/gcc/8binutils/x86_64-centos7/setup.sh
+
+    # Providing BOOST ROOT path. It should be compatible with the g++ above
+    export BOOST_ROOT=/cvmfs/sft.cern.ch/lcg/releases/LCG_100/Boost/1.75.0/x86_64-centos7-gcc8-opt/
+
+    # Prociding the OPCUA TOOLKIT path. It should be compatible with the g++ above
+    export OPCUA_TOOLKIT_PATH=/opt/uasdk-1.6.5-gcc83
   else
     #	CentOS local setup | Using gcc4.8.5
     echo "Resolving dependencies from within CC7 native tools..."
@@ -75,16 +62,6 @@ if isCentOS; then
   fi
 
   echo "C++ compiler, CMake, boost and other dependencies configured"
-
-  # The following lines are used to create a virtual environment for your python
-  # and include the relevant python dependencies
-
-  #virtualenv pythonEnvironment
-  #source pythonEnvironment/bin/activate
-  #pip install --upgrade pip
-  #pip install -r requirements.txt
-
-  #echo "Python dependencies configured successfully!"
 
   gccVersion
   cmakeVersion
