@@ -39,7 +39,7 @@
 #include <SnmpStatus.h>
 
 #include <statuscode.h>
-#include<variant>
+#include <variant>
 
 namespace Snmp{
 
@@ -78,17 +78,23 @@ private:
 	std::vector<oid> prepareOid ( const std::string& oidOfInterest );
 	unsigned int authenticationProtocolStringToEnum ( const std::string & authenticationProtocol );
 	std::string oidToString(const oid * objid, size_t objidlen, const netsnmp_variable_list * variable);
+	std::pair<OpcUa_StatusCode, OpcUa_Boolean> translateIntToBoolean ( int32_t rawValue );
 
 public:
-	std::vector<Oid> snmpDeviceWalk ( const std::string& seedOid );
-	std::pair<OpcUa_StatusCode, OpcUa_Int32> oidToInt( const std::string& oidOfInterest );
+	std::pair<OpcUa_StatusCode, OpcUa_Int32> snmpGetInt( const std::string& oidOfInterest );
+	std::pair<OpcUa_StatusCode, OpcUa_Boolean> snmpGetBoolean( const std::string& oidOfInterest );
+	std::pair<OpcUa_StatusCode, UaString> snmpGetString( const std::string& oidOfInterest );
+	std::pair<OpcUa_StatusCode, UaString> snmpGetTime( const std::string& oidOfInterest );
+	std::pair<OpcUa_StatusCode, UaByteString> snmpGetHex( const std::string& oidOfInterest );
+	std::pair<OpcUa_StatusCode, OpcUa_Float> snmpGetFloat( const std::string& oidOfInterest );
 
+	std::vector<Oid> snmpDeviceWalk ( const std::string& seedOid );
 	netsnmp_pdu * snmpGetNext( const std::string& oidOfInterest );
 	SnmpStatus snmpSet( const std::string& oidOfInterest, snmpSetValue & value );
 	netsnmp_pdu * snmpGet( const std::string& oidOfInterest );
 
 	void closeSession ();
-	std::string getHostName() {return m_hostname; };
+	std::string getHostName() { return m_hostname; };
 	void * getSessionPointer() { return m_sessp; };
 	netsnmp_session * getSnmpSessionHandle() { return m_snmpSessionHandle; };
 
