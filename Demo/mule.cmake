@@ -25,25 +25,25 @@
 # (INCLUDING  NEGLIGENCE OR OTHERWISE)  ARISING IN ANY WAY OUT OF  THE USE OF THIS
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-message(STATUS "Using file [config-toolkit155-mule.cmake] toolchain file")
+message(STATUS "Using file [mule.cmake] toolchain file")
 
 set(CMAKE_CXX_COMPILER $ENV{CXX})
 set(CMAKE_CC_COMPILER $ENV{CC})
 
 # ---------------
-# Mule
+# mule
 # ---------------
-set(MULE_INCLUDE_DIRECTORIES ${PROJECT_SOURCE_DIR}/Mule/include)
+set(MULE_INCLUDE_DIRECTORIES ${PROJECT_SOURCE_DIR}/mule/include)
 set(MULE_LINK_DIRECTORIES)
 set(MULE_LINK_LIBRARIES)
 
-message(STATUS "Taking Mule dependencies from environment:")
-message(STATUS "Mule headers [${MULE_INCLUDE_DIRECTORIES}]")
-message(STATUS "Mule lib directories [${MULE_LINK_DIRECTORIES}]")
-message(STATUS "Mule libs [${MULE_LINK_LIBRARIES}]")
+message(STATUS "Taking mule dependencies from environment:")
+message(STATUS "mule headers [${MULE_INCLUDE_DIRECTORIES}]")
+message(STATUS "mule lib directories [${MULE_LINK_DIRECTORIES}]")
+message(STATUS "mule libs [${MULE_LINK_LIBRARIES}]")
 
 # -------
-# Net-SNMP - use the one defined for Mule by sourcing setupEnvironment.sh
+# Net-SNMP - use the one defined for mule by sourcing setupEnvironment.sh
 # -------
 set(NETSNMP_INCLUDE_DIRECTORIES $ENV{NETSNMP_HEADERS})
 set(NETSNMP_LINK_DIRECTORIES $ENV{NETSNMP_LIB_DIRECTORIES})
@@ -55,7 +55,7 @@ message(STATUS "Net-SNMP lib directories [${NETSNMP_LINK_DIRECTORIES}]")
 message(STATUS "Net-SNMP libs [${NETSNMP_LINK_LIBRARIES}]")
 
 # -------
-# Boost - use the one defined for Mule by sourcing setupEnvironment.sh
+# Boost - use the one defined for mule by sourcing setupEnvironment.sh
 # -------
 set ( BOOST_ROOT $ENV{BOOST_ROOT} )
 
@@ -102,5 +102,5 @@ set(XML_LIBS -lxerces-c)
 
 add_definitions(-Wall -DBACKEND_UATOOLKIT  -Wno-deprecated)
 
-set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
