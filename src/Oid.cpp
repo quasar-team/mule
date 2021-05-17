@@ -72,6 +72,7 @@ void Oid::assign ( std::string oidOfInterest )
 	oidPart.push_back(oidOfInterest.substr(previous, current - previous));
 
 	m_oidSize = oidPart.size();
+	m_rootOid = "1.3.6.1.4.1.16394.2.1.1";
 
 	if ( oidPart.at(6) != "16394" )
 	{
