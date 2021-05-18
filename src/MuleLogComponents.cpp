@@ -34,8 +34,8 @@ using namespace Mule;
 
 void LogComponentLevels::initializeMule(Log::LOG_LEVEL initialLogLevel)
 {
-    s_snmpBackend = Log::registerLoggingComponent("mule", initialLogLevel);
+    s_mule = Log::registerLoggingComponent("mule", initialLogLevel);
 }
 
-Log::LogComponentHandle LogComponentLevels::s_snmpBackend = Log::INVALID_HANDLE;
+Log::LogComponentHandle LogComponentLevels::s_mule = Log::INVALID_HANDLE;
 

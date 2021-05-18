@@ -77,11 +77,11 @@ void Oid::assign ( std::string oidOfInterest )
 	if ( oidPart.at(6) != "16394" )
 	{
 		m_valid = false;
-		LOG(Log::DBG, LogComponentLevels::snmpBackend()) << "Wrong OID provided: " << oidOfInterest;
+		LOG(Log::DBG, LogComponentLevels::mule()) << "Wrong OID provided: " << oidOfInterest;
 	}
 	else if ( m_oidSize == 12 )
 	{
-		LOG(Log::DBG, LogComponentLevels::snmpBackend()) << "Seed for discovering a device was provided: " << oidOfInterest;
+		LOG(Log::DBG, LogComponentLevels::mule()) << "Seed for discovering a device was provided: " << oidOfInterest;
 		m_deviceTypeOid = stoi(oidPart.at(10));
 		m_subDeviceTypeOid = stoi(oidPart.at(11));
 		m_variableOid = 0;
@@ -89,7 +89,7 @@ void Oid::assign ( std::string oidOfInterest )
 	}
 	else if ( m_oidSize == 14 ) // This can also be a seed for sensors
 	{
-		LOG(Log::DBG, LogComponentLevels::snmpBackend()) << "Full OID provided or seed for discovering sensors: " << oidOfInterest;;
+		LOG(Log::DBG, LogComponentLevels::mule()) << "Full OID provided or seed for discovering sensors: " << oidOfInterest;;
 		m_deviceTypeOid = stoi(oidPart.at(10));
 		m_subDeviceTypeOid = stoi(oidPart.at(11));
 		m_variableOid = stoi(oidPart.at(12));
@@ -97,7 +97,7 @@ void Oid::assign ( std::string oidOfInterest )
 	}
 	else if ( m_oidSize == 15 )
 	{
-		LOG(Log::DBG, LogComponentLevels::snmpBackend()) << "Full sensor OID provided: " << oidOfInterest;
+		LOG(Log::DBG, LogComponentLevels::mule()) << "Full sensor OID provided: " << oidOfInterest;
 		m_deviceTypeOid = stoi(oidPart.at(10));
 		m_subDeviceTypeOid = stoi(oidPart.at(11));
 		m_variableOid = stoi(oidPart.at(12));
@@ -107,7 +107,7 @@ void Oid::assign ( std::string oidOfInterest )
 	}
 	else
 	{
-		LOG(Log::ERR, LogComponentLevels::snmpBackend()) << "Unknown OID size:"  << oidOfInterest;
+		LOG(Log::ERR, LogComponentLevels::mule()) << "Unknown OID size:"  << oidOfInterest;
 	}
 }
 

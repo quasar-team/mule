@@ -61,7 +61,7 @@ SnmpBackend::SnmpBackend(std::string hostname,
 	}
 	catch (const std::exception& e)
 	{
-		LOG(Log::ERR, LogComponentLevels::snmpBackend()) << "While initializing session: " << e.what();
+		LOG(Log::ERR, LogComponentLevels::mule()) << "While initializing session: " << e.what();
 	}
 
 };
@@ -72,7 +72,7 @@ snmp_session SnmpBackend::createSessionV2 ()
 	if ( m_snmpVersion != "2" && m_snmpVersion != "2c" && m_snmpVersion != "1" )
 		snmp_throw_runtime_error_with_origin("Wrong or not supported SNMP version. Choose one from (1, 2c)");
 
-	LOG(Log::INF, LogComponentLevels::snmpBackend()) << "[" << m_hostname << "] " << "Using SNMP version " << m_snmpVersion;
+	LOG(Log::INF, LogComponentLevels::mule()) << "[" << m_hostname << "] " << "Using SNMP version " << m_snmpVersion;
 	snmp_session snmpSession;
 
 	snmp_sess_init( &snmpSession );
@@ -94,7 +94,7 @@ snmp_session SnmpBackend::createSessionV2 ()
 snmp_session SnmpBackend::createSessionV3 ()
 {
 
-	init_snmp("SnmpModule");
+	init_snmp("mule");
 
 	snmp_session snmpSession;
 	/*
@@ -116,7 +116,7 @@ snmp_session SnmpBackend::createSessionV3 ()
 
 	/* set up the authentication parameters for talking to the server */
 
-	LOG(Log::INF, LogComponentLevels::snmpBackend()) << "[" << m_hostname << "] " << "Using SNMP version " << m_snmpVersion;
+	LOG(Log::INF, LogComponentLevels::mule()) << "[" << m_hostname << "] " << "Using SNMP version " << m_snmpVersion;
 
 	/* set the SNMPv3 passphrase */
 	const char *v3AuthenticationPassPhrase = m_authenticationPassPhrase.c_str();
@@ -131,19 +131,19 @@ snmp_session SnmpBackend::createSessionV3 ()
 	/* set the security level to authenticated, but not encrypted */
 	switch( authenticationProtocolStringToEnum(m_securityLevel) ) {
 	   case Snmp::Constants::AUTH_NO_PRIV		:
-		   LOG(Log::INF, LogComponentLevels::snmpBackend()) << "[" << m_hostname << "] " << "Setting security level to authenticated, but not encrypted (" << SNMP_SEC_LEVEL_AUTHNOPRIV << ")";
+		   LOG(Log::INF, LogComponentLevels::mule()) << "[" << m_hostname << "] " << "Setting security level to authenticated, but not encrypted (" << SNMP_SEC_LEVEL_AUTHNOPRIV << ")";
 		   snmpSession.securityLevel = SNMP_SEC_LEVEL_AUTHNOPRIV;
 		   break;
 	   case Snmp::Constants::AUTH_PRIV			:
-		   LOG(Log::INF, LogComponentLevels::snmpBackend()) << "[" << m_hostname << "] " << "Setting security level to authenticated and encrypted (" << SNMP_SEC_LEVEL_AUTHPRIV << ")";
+		   LOG(Log::INF, LogComponentLevels::mule()) << "[" << m_hostname << "] " << "Setting security level to authenticated and encrypted (" << SNMP_SEC_LEVEL_AUTHPRIV << ")";
 		   snmpSession.securityLevel = SNMP_SEC_LEVEL_AUTHPRIV;
 		   break;
 	   case Snmp::Constants::NO_AUTH_NO_PRIV	:
-		   LOG(Log::INF, LogComponentLevels::snmpBackend()) << "[" << m_hostname << "] " << "Setting security level to no authentication (" << SNMP_SEC_LEVEL_NOAUTH << ")";
+		   LOG(Log::INF, LogComponentLevels::mule()) << "[" << m_hostname << "] " << "Setting security level to no authentication (" << SNMP_SEC_LEVEL_NOAUTH << ")";
 		   snmpSession.securityLevel = SNMP_SEC_LEVEL_NOAUTH;
 		   break;
 	   default				:
-		   LOG(Log::ERR, LogComponentLevels::snmpBackend()) << "[" << m_hostname << "] " << "Security level was not set properly";
+		   LOG(Log::ERR, LogComponentLevels::mule()) << "[" << m_hostname << "] " << "Security level was not set properly";
 		   snmpSession.securityLevel = 0;
 		   break;
 	}
@@ -189,7 +189,7 @@ void SnmpBackend::openSession ( snmp_session snmpSession )
 	}
 	catch (const std::exception& e)
 	{
-		LOG(Log::ERR, LogComponentLevels::snmpBackend()) << "Failed to establish communication. Exiting... " << e.what();
+		LOG(Log::ERR, LogComponentLevels::mule()) << "Failed to establish communication. Exiting... " << e.what();
 		SOCK_CLEANUP;
 		exit(1);
 	}
@@ -207,7 +207,7 @@ void SnmpBackend::closeSession ()
 std::vector<Oid> SnmpBackend::snmpDeviceWalk ( const std::string& seedOid )
 {
 
-	LOG(Log::INF, LogComponentLevels::snmpBackend()) << "SNMP device walk seed OID:" << seedOid << " on device: " << m_hostname;
+	LOG(Log::INF, LogComponentLevels::mule()) << "SNMP device walk seed OID:" << seedOid << " on device: " << m_hostname;
 
 	netsnmp_variable_list *vars;
 	netsnmp_pdu * response = snmpGetNext ( seedOid );
@@ -248,12 +248,12 @@ std::vector<Oid> SnmpBackend::snmpDeviceWalk ( const std::string& seedOid )
 			walkedOids.push_back(nextDeviceOid);
 			if ( nextDeviceOid.isSensor() )
 			{
-				LOG(Log::TRC, LogComponentLevels::snmpBackend()) << nextDeviceOid.getSensorOid();
+				LOG(Log::TRC, LogComponentLevels::mule()) << nextDeviceOid.getSensorOid();
 				response = snmpGetNext ( nextDeviceOid.getSensorOid() );
 			}
 			else
 			{
-				LOG(Log::TRC, LogComponentLevels::snmpBackend()) << nextDeviceOid.getOid();
+				LOG(Log::TRC, LogComponentLevels::mule()) << nextDeviceOid.getOid();
 				response = snmpGetNext ( nextDeviceOid.getOid() );
 			}
 
@@ -268,7 +268,7 @@ std::vector<Oid> SnmpBackend::snmpDeviceWalk ( const std::string& seedOid )
 netsnmp_pdu * SnmpBackend::snmpGet( const std::string& oidOfInterest )
 {
 
-	LOG(Log::TRC, LogComponentLevels::snmpBackend()) << "SNMP get OID:" << oidOfInterest << " on device with hostname: " << m_hostname;
+	LOG(Log::TRC, LogComponentLevels::mule()) << "SNMP get OID:" << oidOfInterest << " on device with hostname: " << m_hostname;
 
 	netsnmp_pdu *pdu, *response;
 
@@ -288,7 +288,7 @@ netsnmp_pdu * SnmpBackend::snmpGet( const std::string& oidOfInterest )
 	 * Send the Request out.
 	 */
 
-	LOG(Log::TRC, LogComponentLevels::snmpBackend()) << "Sending request";
+	LOG(Log::TRC, LogComponentLevels::mule()) << "Sending request";
 
 	try
 	{
@@ -297,7 +297,7 @@ netsnmp_pdu * SnmpBackend::snmpGet( const std::string& oidOfInterest )
 	}
 	catch (const std::exception& e)
 	{
-		LOG(Log::ERR, LogComponentLevels::snmpBackend()) << e.what();
+		LOG(Log::ERR, LogComponentLevels::mule()) << e.what();
 	}
 
 	/*
@@ -308,10 +308,10 @@ netsnmp_pdu * SnmpBackend::snmpGet( const std::string& oidOfInterest )
 	return response;
 }
 
-SnmpStatus SnmpBackend::snmpSet( const std::string& oidOfInterest, std::variant<int, std::string, bool> & value )
+SnmpStatus SnmpBackend::snmpSet( const std::string& oidOfInterest, snmpSetValue & value )
 {
 
-	LOG(Log::TRC, LogComponentLevels::snmpBackend()) << "SNMP set OID:" << oidOfInterest << " on device with hostname: " << m_hostname;
+	LOG(Log::TRC, LogComponentLevels::mule()) << "SNMP set OID:" << oidOfInterest << " on device with hostname: " << m_hostname;
 
 	netsnmp_pdu *pdu;
 	netsnmp_pdu *response = nullptr;
@@ -329,13 +329,22 @@ SnmpStatus SnmpBackend::snmpSet( const std::string& oidOfInterest, std::variant<
 		snmp_pdu_add_variable(pdu, &subIdentifierList[0], subIdentifierList.size(), ASN_OCTET_STR, valueString.c_str(), valueString.size() );
 
 	}
-	else if ( std::holds_alternative<int>(value) )
+	else if ( std::holds_alternative<int32_t>(value) )
 	{
 
-		int valueInt = std::get<int>(value);
+		int32_t valueInt = std::get<int32_t>(value);
 		const void * val = &valueInt;
 
 		snmp_pdu_add_variable(pdu, &subIdentifierList[0], subIdentifierList.size(), ASN_INTEGER, val, sizeof( valueInt ) );
+
+	}
+	else if ( std::holds_alternative<uint32_t>(value) )
+	{
+
+		uint32_t valueInt = std::get<uint32_t>(value);
+		const void * val = &valueInt;
+
+		snmp_pdu_add_variable(pdu, &subIdentifierList[0], subIdentifierList.size(), 'B' /* GAUGE32 */, val, sizeof( valueInt ) );
 
 	}
 	else if ( std::holds_alternative<bool>(value) )
@@ -348,25 +357,15 @@ SnmpStatus SnmpBackend::snmpSet( const std::string& oidOfInterest, std::variant<
 		snmp_pdu_add_variable(pdu, &subIdentifierList[0], subIdentifierList.size(), ASN_INTEGER, val, sizeof( valueToInt ) );
 
 	}
-	// TODO: Is this really different type?
-	else if ( std::holds_alternative<std::string>(value) )
-	{
-
-		std::string valueHexString = std::get<std::string>(value);
-		const void * val = &valueHexString;
-
-		snmp_pdu_add_variable(pdu, &subIdentifierList[0], subIdentifierList.size(), ASN_OCTET_STR, val, sizeof( valueHexString ) );
-
-	}
 	else
 	{
 
-		LOG(Log::ERR, LogComponentLevels::snmpBackend()) << "Type is not supported " << value.index();
+		LOG(Log::ERR, LogComponentLevels::mule()) << "Type is not supported " << value.index();
 		return Snmp_BadNotSupported;
 
 	}
 
-	LOG(Log::TRC, LogComponentLevels::snmpBackend()) << "Sending request";
+	LOG(Log::TRC, LogComponentLevels::mule()) << "Sending request";
 
 	try
 	{
@@ -387,7 +386,7 @@ SnmpStatus SnmpBackend::snmpSet( const std::string& oidOfInterest, std::variant<
 netsnmp_pdu * SnmpBackend::snmpGetNext( const std::string& oidOfInterest )
 {
 
-	LOG(Log::TRC, LogComponentLevels::snmpBackend()) << "SNMP get next OID:" << oidOfInterest;
+	LOG(Log::TRC, LogComponentLevels::mule()) << "SNMP get next OID:" << oidOfInterest;
 
 	netsnmp_pdu *pdu, *response;
 	SnmpStatus status = Snmp_BadNotImplemented;
@@ -398,7 +397,7 @@ netsnmp_pdu * SnmpBackend::snmpGetNext( const std::string& oidOfInterest )
 
 	snmp_add_null_var( pdu, &subIdentifierList[0], subIdentifierList.size() );
 
-	LOG(Log::TRC, LogComponentLevels::snmpBackend()) << "Sending request";
+	LOG(Log::TRC, LogComponentLevels::mule()) << "Sending request";
 
 	try
 	{
@@ -407,7 +406,7 @@ netsnmp_pdu * SnmpBackend::snmpGetNext( const std::string& oidOfInterest )
 	}
 	catch (const std::exception& e)
 	{
-		LOG(Log::ERR, LogComponentLevels::snmpBackend()) << "With SNMP status: " << status << ". " << e.what();
+		LOG(Log::ERR, LogComponentLevels::mule()) << "With SNMP status: " << status << ". " << e.what();
 	}
 
 	return response;
@@ -416,7 +415,7 @@ netsnmp_pdu * SnmpBackend::snmpGetNext( const std::string& oidOfInterest )
 std::vector<oid> SnmpBackend::prepareOid ( const std::string& oidOfInterest )
 {
 
-	LOG(Log::TRC, LogComponentLevels::snmpBackend()) << "Preparing OID: " << oidOfInterest;
+	LOG(Log::TRC, LogComponentLevels::mule()) << "Preparing OID: " << oidOfInterest;
 
 	oid anOID[MAX_OID_LEN];
 	size_t anOID_len = MAX_OID_LEN;
@@ -442,7 +441,7 @@ SnmpStatus SnmpBackend::throwIfSnmpResponseError ( int status, netsnmp_pdu *resp
 	if (status == STAT_SUCCESS && response->errstat == SNMP_ERR_NOERROR)
 	{
 
-		LOG(Log::TRC, LogComponentLevels::snmpBackend()) << "Received successful SNMP response";
+		LOG(Log::TRC, LogComponentLevels::mule()) << "Received successful SNMP response";
 		return Snmp_Good;
 
 	}
