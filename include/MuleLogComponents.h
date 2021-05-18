@@ -38,12 +38,12 @@ namespace Mule
 class LogComponentLevels
 {
 public:
-    static Log::LogComponentHandle snmpBackend() { return s_snmpBackend; }
+    static Log::LogComponentHandle mule() { return s_mule; }
 
     static void initializeMule(Log::LOG_LEVEL initialLogLevel = Log::LOG_LEVEL::INF);
 
 private:
-    static Log::LogComponentHandle s_snmpBackend;
+    static Log::LogComponentHandle s_mule;
 };
 
 }

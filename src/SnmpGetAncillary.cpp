@@ -60,7 +60,7 @@ std::pair<OpcUa_StatusCode, OpcUa_Int32> SnmpBackend::snmpGetInt( const std::str
 			}
 			else
 			{
-				LOG(Log::TRC, LogComponentLevels::snmpBackend()) << "There is no such variable name in this MIB. Type: 0x" << std::hex << (int)(vars->type)
+				LOG(Log::TRC, LogComponentLevels::mule()) << "There is no such variable name in this MIB. Type: 0x" << std::hex << (int)(vars->type)
 								<< ". Failed OID: " << oidOfInterest;
 				if (response) snmp_free_pdu(response);
 				return std::pair<OpcUa_StatusCode, OpcUa_Int32>(OpcUa_BadNoDataAvailable, value);
@@ -97,7 +97,7 @@ std::pair<OpcUa_StatusCode, UaString> SnmpBackend::snmpGetString( const std::str
 			}
 			else
 			{
-				LOG(Log::TRC, LogComponentLevels::snmpBackend()) << "There is no such variable name in this MIB. Type: 0x" << std::hex << (int)(vars->type)
+				LOG(Log::TRC, LogComponentLevels::mule()) << "There is no such variable name in this MIB. Type: 0x" << std::hex << (int)(vars->type)
 								<< ". Failed OID: " << oidOfInterest;
 				if (response) snmp_free_pdu(response);
 				return std::pair<OpcUa_StatusCode, UaString>(OpcUa_BadNoDataAvailable, value);
@@ -115,7 +115,7 @@ std::pair<OpcUa_StatusCode, UaString> SnmpBackend::snmpGetString( const std::str
 std::pair<OpcUa_StatusCode, OpcUa_Boolean> SnmpBackend::snmpGetBoolean( const std::string& oidOfInterest )
 {
 
-	LOG(Log::TRC, LogComponentLevels::snmpBackend()) << "UpdateOidToBoolean:" << oidOfInterest << " on device: " << getHostName();
+	LOG(Log::TRC, LogComponentLevels::mule()) << "UpdateOidToBoolean:" << oidOfInterest << " on device: " << getHostName();
 
 	netsnmp_variable_list *vars;
 	OpcUa_Int32 value(0);
@@ -136,7 +136,7 @@ std::pair<OpcUa_StatusCode, OpcUa_Boolean> SnmpBackend::snmpGetBoolean( const st
 			}
 			else
 			{
-				LOG(Log::TRC, LogComponentLevels::snmpBackend()) << "There is no such variable name in this MIB. Type: 0x" << std::hex << (int)(vars->type)
+				LOG(Log::TRC, LogComponentLevels::mule()) << "There is no such variable name in this MIB. Type: 0x" << std::hex << (int)(vars->type)
 								<< ". Failed OID: " << oidOfInterest;
 				if (response) snmp_free_pdu(response);
 				return std::pair<OpcUa_StatusCode, OpcUa_Boolean>(OpcUa_BadNoDataAvailable, value);
@@ -182,7 +182,7 @@ std::pair<OpcUa_StatusCode, UaString> SnmpBackend::snmpGetTime( const std::strin
 				}
 				else
 				{
-					LOG(Log::TRC, LogComponentLevels::snmpBackend()) << "There is no such variable name in this MIB. Type: 0x" << std::hex << (int)(vars->type)
+					LOG(Log::TRC, LogComponentLevels::mule()) << "There is no such variable name in this MIB. Type: 0x" << std::hex << (int)(vars->type)
 									<< ". Failed OID: " << oidOfInterest;
 					if (response) snmp_free_pdu(response);
 					return std::pair<OpcUa_StatusCode, UaString>(OpcUa_BadNoDataAvailable, "");
@@ -223,7 +223,7 @@ std::pair<OpcUa_StatusCode, UaByteString> SnmpBackend::snmpGetHex( const std::st
 			else
 			{
 
-				LOG(Log::TRC, LogComponentLevels::snmpBackend()) << "There is no such variable name in this MIB. Type: 0x" << std::hex << (int)(vars->type)
+				LOG(Log::TRC, LogComponentLevels::mule()) << "There is no such variable name in this MIB. Type: 0x" << std::hex << (int)(vars->type)
 								<< ". Failed OID: " << oidOfInterest;
 				if (response) snmp_free_pdu(response);
 				return std::pair<OpcUa_StatusCode, UaByteString>(OpcUa_BadNoDataAvailable, value);
@@ -269,7 +269,7 @@ std::pair<OpcUa_StatusCode, OpcUa_Float> SnmpBackend::snmpGetFloat( const std::s
 					}
 					catch (const std::exception& e)
 					{
-						LOG(Log::ERR, LogComponentLevels::snmpBackend()) << e.what() << ": Cannot convert sensor value. Due to sensor type? (OID:" << oidOfInterest << ")";
+						LOG(Log::ERR, LogComponentLevels::mule()) << e.what() << ": Cannot convert sensor value. Due to sensor type? (OID:" << oidOfInterest << ")";
 					}
 				}
 				if (response) snmp_free_pdu(response);
@@ -279,7 +279,7 @@ std::pair<OpcUa_StatusCode, OpcUa_Float> SnmpBackend::snmpGetFloat( const std::s
 			else
 			{
 
-				LOG(Log::TRC, LogComponentLevels::snmpBackend()) << "There is no such variable name in this MIB. Type: 0x" << std::hex << (int)(vars->type)
+				LOG(Log::TRC, LogComponentLevels::mule()) << "There is no such variable name in this MIB. Type: 0x" << std::hex << (int)(vars->type)
 								<< ". Failed OID: " << oidOfInterest;
 				if (response) snmp_free_pdu(response);
 				return std::pair<OpcUa_StatusCode, OpcUa_Float>(OpcUa_BadNoDataAvailable, value);

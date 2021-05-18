@@ -43,7 +43,16 @@
 
 namespace Snmp{
 
-typedef std::variant<int,std::string, bool> snmpSetValue;
+typedef std::variant<
+					// ASN.1 INTEGER, SMIv2 Integer32
+					int32_t,
+					// ASN.1 OCTET STRING
+					std::string,
+					// SMIv2 Counter32/Gauge32/TimeTicks/Unsigned32
+					uint32_t,
+					// mule bool
+					bool> 
+					snmpSetValue;
 
 class SnmpBackend {
 
