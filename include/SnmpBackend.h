@@ -87,15 +87,15 @@ private:
 	std::vector<oid> prepareOid ( const std::string& oidOfInterest );
 	unsigned int authenticationProtocolStringToEnum ( const std::string & authenticationProtocol );
 	std::string oidToString(const oid * objid, size_t objidlen, const netsnmp_variable_list * variable);
-	std::pair<OpcUa_StatusCode, OpcUa_Boolean> translateIntToBoolean ( int32_t rawValue );
+	std::pair<SnmpStatus, OpcUa_Boolean> translateIntToBoolean ( int32_t rawValue );
 
 public:
-	std::pair<OpcUa_StatusCode, OpcUa_Int32> snmpGetInt( const std::string& oidOfInterest );
-	std::pair<OpcUa_StatusCode, OpcUa_Boolean> snmpGetBoolean( const std::string& oidOfInterest );
-	std::pair<OpcUa_StatusCode, UaString> snmpGetString( const std::string& oidOfInterest );
-	std::pair<OpcUa_StatusCode, UaString> snmpGetTime( const std::string& oidOfInterest );
-	std::pair<OpcUa_StatusCode, UaByteString> snmpGetHex( const std::string& oidOfInterest );
-	std::pair<OpcUa_StatusCode, OpcUa_Float> snmpGetFloat( const std::string& oidOfInterest );
+	std::pair<SnmpStatus, OpcUa_Int32> snmpGetInt( const std::string& oidOfInterest );
+	std::pair<SnmpStatus, OpcUa_Boolean> snmpGetBoolean( const std::string& oidOfInterest );
+	std::pair<SnmpStatus, UaString> snmpGetString( const std::string& oidOfInterest );
+	std::pair<SnmpStatus, UaString> snmpGetTime( const std::string& oidOfInterest );
+	std::pair<SnmpStatus, UaByteString> snmpGetHex( const std::string& oidOfInterest );
+	std::pair<SnmpStatus, OpcUa_Float> snmpGetFloat( const std::string& oidOfInterest );
 
 	std::vector<Oid> snmpDeviceWalk ( const std::string& seedOid );
 	netsnmp_pdu * snmpGetNext( const std::string& oidOfInterest );

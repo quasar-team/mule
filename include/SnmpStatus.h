@@ -30,7 +30,7 @@
 
 namespace Snmp {
 
-enum SnmpStatus
+enum SnmpStatus : uint32_t
 { 
     Snmp_Good, 
     Snmp_Bad,
