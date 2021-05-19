@@ -344,7 +344,7 @@ SnmpStatus SnmpBackend::snmpSet( const std::string& oidOfInterest, snmpSetValue 
 		uint32_t valueInt = std::get<uint32_t>(value);
 		const void * val = &valueInt;
 
-		snmp_pdu_add_variable(pdu, &subIdentifierList[0], subIdentifierList.size(), 'B' /* GAUGE32 */, val, sizeof( valueInt ) );
+		snmp_pdu_add_variable(pdu, &subIdentifierList[0], subIdentifierList.size(), 'B' /* Needed by PDU server */, val, sizeof( valueInt ) );
 
 	}
 	else if ( std::holds_alternative<bool>(value) )
