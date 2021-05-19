@@ -30,16 +30,17 @@
 
 #pragma once
 
+#include <string>
+#include <vector>
+#include <variant>
+
 #include <net-snmp/net-snmp-config.h>
 #include <net-snmp/net-snmp-includes.h>
 
-#include <string>
-#include <vector>
 #include <Oid.h>
 #include <SnmpStatus.h>
 
 #include <statuscode.h>
-#include <variant>
 
 namespace Snmp{
 
@@ -87,15 +88,15 @@ private:
 	std::vector<oid> prepareOid ( const std::string& oidOfInterest );
 	unsigned int authenticationProtocolStringToEnum ( const std::string & authenticationProtocol );
 	std::string oidToString(const oid * objid, size_t objidlen, const netsnmp_variable_list * variable);
-	std::pair<SnmpStatus, OpcUa_Boolean> translateIntToBoolean ( int32_t rawValue );
+	std::pair<SnmpStatus, unsigned char > translateIntToBoolean ( int32_t rawValue );
 
 public:
-	std::pair<SnmpStatus, OpcUa_Int32> snmpGetInt( const std::string& oidOfInterest );
-	std::pair<SnmpStatus, OpcUa_Boolean> snmpGetBoolean( const std::string& oidOfInterest );
-	std::pair<SnmpStatus, UaString> snmpGetString( const std::string& oidOfInterest );
-	std::pair<SnmpStatus, UaString> snmpGetTime( const std::string& oidOfInterest );
-	std::pair<SnmpStatus, UaByteString> snmpGetHex( const std::string& oidOfInterest );
-	std::pair<SnmpStatus, OpcUa_Float> snmpGetFloat( const std::string& oidOfInterest );
+	std::pair<SnmpStatus, int32_t> snmpGetInt( const std::string& oidOfInterest );
+	std::pair<SnmpStatus, unsigned char > snmpGetBoolean( const std::string& oidOfInterest );
+	std::pair<SnmpStatus, std::string> snmpGetString( const std::string& oidOfInterest );
+	std::pair<SnmpStatus, std::string> snmpGetTime( const std::string& oidOfInterest );
+	std::pair<SnmpStatus, std::vector<uint8_t>> snmpGetHex( const std::string& oidOfInterest );
+	std::pair<SnmpStatus, float> snmpGetFloat( const std::string& oidOfInterest );
 
 	std::vector<Oid> snmpDeviceWalk ( const std::string& seedOid );
 	netsnmp_pdu * snmpGetNext( const std::string& oidOfInterest );

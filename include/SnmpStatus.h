@@ -32,10 +32,12 @@ namespace Snmp {
 
 enum SnmpStatus : uint32_t
 { 
-    Snmp_Good, 
-    Snmp_Bad,
-    Snmp_BadNotImplemented,
-    Snmp_BadNotSupported
+    Snmp_Good = 0x00000000, 
+    Snmp_Bad = 0x80000000,
+    Snmp_BadNotSupported = 0x803D0000,
+    Snmp_BadNotImplemented = 0x80400000,
+    Snmp_BadDataUnavailable = 0x809E0000,
+    Snmp_BadNoDataAvailable = 0x80B10000
 };
 
 }
