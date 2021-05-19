@@ -297,7 +297,7 @@ netsnmp_pdu * SnmpBackend::snmpGet( const std::string& oidOfInterest )
 	}
 	catch (const std::exception& e)
 	{
-		LOG(Log::ERR, LogComponentLevels::mule()) << e.what();
+		LOG(Log::ERR, LogComponentLevels::mule()) << "At snmpGet from: " << getHostName() << " " << e.what();
 	}
 
 	/*
@@ -374,7 +374,7 @@ SnmpStatus SnmpBackend::snmpSet( const std::string& oidOfInterest, snmpSetValue 
 	}
 	catch (const std::exception& e)
 	{
-		LOG(Log::ERR) << e.what();
+		LOG(Log::ERR) << "At snmpSet to: " << getHostName() << " " << e.what();
 	}
 
 	if (response)
@@ -448,8 +448,18 @@ SnmpStatus SnmpBackend::throwIfSnmpResponseError ( int status, netsnmp_pdu *resp
 	else
 	{
 
-		if (status == STAT_SUCCESS)
+		if ( status == STAT_SUCCESS ) 
+		{
 			snmp_throw_runtime_error_with_origin( "Error in packet. Reason: " + snmp_errstring(response->errstat) );
+		}
+		else if ( status == STAT_ERROR )
+		{
+			snmp_throw_runtime_error_with_origin( "Error due to synch state with status code STAT_ERROR");
+		}
+		else if ( status == STAT_TIMEOUT )
+		{
+			snmp_throw_runtime_error_with_origin( "Error due to synch state with status code STAT_TIMEOUT");
+		}
 		else
 		{
 			snmp_throw_runtime_error_with_origin( "Session error" );
