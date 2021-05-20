@@ -199,7 +199,6 @@ std::pair<SnmpStatus, std::vector<uint8_t>> SnmpBackend::snmpGetHex( const std::
 
 	netsnmp_variable_list *vars;
 	std::vector<uint8_t> value{};
-	UaByteString value2;
 	netsnmp_pdu * response = snmpGet ( oidOfInterest );
 
 	if (response)
@@ -212,7 +211,6 @@ std::pair<SnmpStatus, std::vector<uint8_t>> SnmpBackend::snmpGetHex( const std::
 			{
 
 				uint8_t* myHexValue = (reinterpret_cast<uint8_t*>(vars->val.string));
-				value2.setByteString( vars->val_len, myHexValue );
 				std::vector<uint8_t> hexValue(&myHexValue[0], &myHexValue[vars->val_len]);
 
 				if (response) snmp_free_pdu(response);
