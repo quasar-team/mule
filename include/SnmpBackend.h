@@ -40,8 +40,6 @@
 #include <Oid.h>
 #include <SnmpStatus.h>
 
-#include <statuscode.h>
-
 namespace Snmp{
 
 typedef std::variant<
@@ -64,7 +62,9 @@ public:
 				std::string username,
 				std::string securityLevel,
 				std::string authenticationProtocol,
-				std::string authenticationPassPhrase );
+				std::string authenticationPassPhrase,
+				int snmpMaxRetries,
+				int snmpTimeout);
 	~SnmpBackend() {};
 
 private:
@@ -79,6 +79,9 @@ private:
 	std::string m_securityLevel;
 	std::string m_authenticationProtocol;
 	std::string m_authenticationPassPhrase;
+
+	const int m_snmpMaxRetries;
+	const int m_snmpTimeout;
 
 	void * m_sessp;
 	snmp_session m_snmpSession;

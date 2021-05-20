@@ -44,19 +44,30 @@ SnmpBackend::SnmpBackend(std::string hostname,
 				std::string username,
 				std::string securityLevel,
 				std::string authenticationProtocol,
-				std::string authenticationPassPhrase ):
+				std::string authenticationPassPhrase,
+				int snmpMaxRetries,
+				int snmpTimeout) :
 				m_hostname(hostname),
 				m_snmpVersion(snmpVersion),
 				m_community(community),
 				m_username(username),
 				m_securityLevel(securityLevel),
 				m_authenticationProtocol(authenticationProtocol),
-				m_authenticationPassPhrase(authenticationPassPhrase)
+				m_authenticationPassPhrase(authenticationPassPhrase),
+				m_snmpMaxRetries(snmpMaxRetries),
+				m_snmpTimeout(snmpTimeout)
 {
 
 	try
 	{
 		( m_snmpVersion == "3" ) ? m_snmpSession = createSessionV3() : m_snmpSession = createSessionV2();
+
+		/*
+		 *	Configuration parameters of the SNMP session
+		 */
+		m_snmpSession.retries = m_snmpMaxRetries;
+		m_snmpSession.timeout = m_snmpTimeout;
+
 		openSession( m_snmpSession );
 	}
 	catch (const std::exception& e)
@@ -102,12 +113,6 @@ snmp_session SnmpBackend::createSessionV3 ()
 	 * May perform one time minimal library initialization.
 	 */
 	snmp_sess_init( &snmpSession );
-
-	/*
-	 *	Configuration parameters of the SNMP session
-	 */
-	snmpSession.retries = Snmp::Constants::SNMP_MAX_RETRIES;
-	snmpSession.timeout = Snmp::Constants::SNMP_TIMEOUT;
 
 	/*
 	 * Initialize a "session" that defines who we're going to talk to
