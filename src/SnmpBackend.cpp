@@ -46,7 +46,7 @@ SnmpBackend::SnmpBackend(std::string hostname,
 				std::string authenticationProtocol,
 				std::string authenticationPassPhrase,
 				int snmpMaxRetries,
-				int snmpTimeout) :
+				int snmpTimeoutUs) :
 				m_hostname(hostname),
 				m_snmpVersion(snmpVersion),
 				m_community(community),
@@ -55,7 +55,7 @@ SnmpBackend::SnmpBackend(std::string hostname,
 				m_authenticationProtocol(authenticationProtocol),
 				m_authenticationPassPhrase(authenticationPassPhrase),
 				m_snmpMaxRetries(snmpMaxRetries),
-				m_snmpTimeout(snmpTimeout)
+				m_snmpTimeoutUs(snmpTimeoutUs)
 {
 
 	try
@@ -66,7 +66,7 @@ SnmpBackend::SnmpBackend(std::string hostname,
 		 *	Configuration parameters of the SNMP session
 		 */
 		m_snmpSession.retries = m_snmpMaxRetries;
-		m_snmpSession.timeout = m_snmpTimeout;
+		m_snmpSession.timeout = m_snmpTimeoutUs;
 
 		openSession( m_snmpSession );
 	}

@@ -65,7 +65,7 @@ public:
 				std::string authenticationProtocol,
 				std::string authenticationPassPhrase,
 				int snmpMaxRetries,
-				int snmpTimeout);
+				int snmpTimeoutUs);
 	~SnmpBackend();
 
 private:
@@ -83,7 +83,7 @@ private:
 	std::string m_authenticationPassPhrase;
 
 	const int m_snmpMaxRetries;
-	const int m_snmpTimeout;
+	const int m_snmpTimeoutUs;
 
 	void * m_sessp;
 	snmp_session m_snmpSession;
