@@ -65,12 +65,13 @@ public:
 				std::string authenticationPassPhrase,
 				int snmpMaxRetries,
 				int snmpTimeout);
-	~SnmpBackend() {};
+	~SnmpBackend();
 
 private:
 	snmp_session createSessionV2 ();
 	snmp_session createSessionV3 ();
 	void openSession ( snmp_session snmpSession );
+	void closeSession ();
 
 	std::string m_hostname;
 	std::string m_snmpVersion;
@@ -106,7 +107,6 @@ public:
 	SnmpStatus snmpSet( const std::string& oidOfInterest, snmpSetValue & value );
 	netsnmp_pdu * snmpGet( const std::string& oidOfInterest );
 
-	void closeSession ();
 	std::string getHostName() { return m_hostname; };
 	void * getSessionPointer() { return m_sessp; };
 	netsnmp_session * getSnmpSessionHandle() { return m_snmpSessionHandle; };

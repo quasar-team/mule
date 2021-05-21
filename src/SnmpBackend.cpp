@@ -77,6 +77,14 @@ SnmpBackend::SnmpBackend(std::string hostname,
 
 };
 
+SnmpBackend::~SnmpBackend() 
+{
+
+	// RAII cleanup here
+	closeSession();
+
+};
+
 snmp_session SnmpBackend::createSessionV2 ()
 {
 
