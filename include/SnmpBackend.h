@@ -33,6 +33,7 @@
 #include <string>
 #include <vector>
 #include <variant>
+#include <mutex>
 
 #include <net-snmp/net-snmp-config.h>
 #include <net-snmp/net-snmp-includes.h>
@@ -94,6 +95,8 @@ private:
 	std::string oidToString(const oid * objid, size_t objidlen, const netsnmp_variable_list * variable);
 	std::pair<SnmpStatus, unsigned char > translateIntToBoolean ( int32_t rawValue );
 
+	std::mutex m_mutex;
+
 public:
 	std::pair<SnmpStatus, int32_t> snmpGetInt( const std::string& oidOfInterest );
 	std::pair<SnmpStatus, unsigned char > snmpGetBoolean( const std::string& oidOfInterest );
@@ -108,8 +111,6 @@ public:
 	netsnmp_pdu * snmpGet( const std::string& oidOfInterest );
 
 	std::string getHostName() { return m_hostname; };
-	void * getSessionPointer() { return m_sessp; };
-	netsnmp_session * getSnmpSessionHandle() { return m_snmpSessionHandle; };
 
 };
 

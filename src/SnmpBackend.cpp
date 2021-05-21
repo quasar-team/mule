@@ -305,12 +305,13 @@ netsnmp_pdu * SnmpBackend::snmpGet( const std::string& oidOfInterest )
 
 	try
 	{
+		std::lock_guard<std::mutex> guard(m_mutex);
 		int snmp_status = snmp_sess_synch_response( m_sessp, pdu, &response );
 		throwIfSnmpResponseError( snmp_status, response );
 	}
 	catch (const std::exception& e)
 	{
-		LOG(Log::ERR, LogComponentLevels::mule()) << "At snmpGet from: " << getHostName() << " " << e.what();
+		LOG(Log::ERR, LogComponentLevels::mule()) << "At snmpGet from: " << getHostName() << " ." << e.what();
 	}
 
 	/*
@@ -382,6 +383,7 @@ SnmpStatus SnmpBackend::snmpSet( const std::string& oidOfInterest, snmpSetValue 
 
 	try
 	{
+		std::lock_guard<std::mutex> guard(m_mutex);
 		int snmp_status = snmp_sess_synch_response( m_sessp, pdu, &response );
 		status = throwIfSnmpResponseError( snmp_status, response );
 	}
@@ -414,6 +416,7 @@ netsnmp_pdu * SnmpBackend::snmpGetNext( const std::string& oidOfInterest )
 
 	try
 	{
+		std::lock_guard<std::mutex> guard(m_mutex);
 		int snmp_status = snmp_sess_synch_response( m_sessp, pdu, &response );
 		status = throwIfSnmpResponseError( snmp_status, response );
 	}
@@ -463,19 +466,19 @@ SnmpStatus SnmpBackend::throwIfSnmpResponseError ( int status, netsnmp_pdu *resp
 
 		if ( status == STAT_SUCCESS ) 
 		{
-			snmp_throw_runtime_error_with_origin( "Error in packet. Reason: " + snmp_errstring(response->errstat) );
+			snmp_throw_runtime_error_with_origin( "Error in packet due to " + snmp_errstring(response->errstat) );
 		}
 		else if ( status == STAT_ERROR )
 		{
-			snmp_throw_runtime_error_with_origin( "Error due to synch state with status code STAT_ERROR");
+			snmp_throw_runtime_error_with_origin( "Error due to STAT_ERROR");
 		}
 		else if ( status == STAT_TIMEOUT )
 		{
-			snmp_throw_runtime_error_with_origin( "Error due to synch state with status code STAT_TIMEOUT");
+			snmp_throw_runtime_error_with_origin( "Error due to STAT_TIMEOUT");
 		}
 		else
 		{
-			snmp_throw_runtime_error_with_origin( "Session error" );
+			snmp_throw_runtime_error_with_origin( "Unknown session error" );
 		}
 
 	}
