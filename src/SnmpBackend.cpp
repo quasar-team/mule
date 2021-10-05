@@ -37,6 +37,17 @@ using Mule::LogComponentLevels;
 
 namespace Snmp
 {
+SnmpBackend::SnmpBackend(std::string hostname,
+				std::string snmpVersion,
+				std::string community,
+				std::string username,
+				std::string securityLevel,
+				std::string authenticationProtocol,
+				std::string authenticationPassPhrase,
+				int snmpMaxRetries,
+				int snmpTimeoutUs) : 
+				SnmpBackend(hostname, snmpVersion, community, username, securityLevel, authenticationProtocol, m_authenticationPassPhrase, "", "", snmpMaxRetries, snmpTimeoutUs)
+{}
 
 SnmpBackend::SnmpBackend(std::string hostname,
 				std::string snmpVersion,
@@ -45,6 +56,8 @@ SnmpBackend::SnmpBackend(std::string hostname,
 				std::string securityLevel,
 				std::string authenticationProtocol,
 				std::string authenticationPassPhrase,
+				std::string privacyProtocol,
+				std::string privacyPassPhrase,
 				int snmpMaxRetries,
 				int snmpTimeoutUs) :
 				m_hostname(hostname),
@@ -54,6 +67,8 @@ SnmpBackend::SnmpBackend(std::string hostname,
 				m_securityLevel(securityLevel),
 				m_authenticationProtocol(authenticationProtocol),
 				m_authenticationPassPhrase(authenticationPassPhrase),
+				m_privacyProtocol(privacyProtocol),
+				m_privacyPassPhrase(privacyPassPhrase),
 				m_snmpMaxRetries(snmpMaxRetries),
 				m_snmpTimeoutUs(snmpTimeoutUs)
 {
@@ -131,9 +146,6 @@ snmp_session SnmpBackend::createSessionV3 ()
 
 	LOG(Log::INF, LogComponentLevels::mule()) << "[" << m_hostname << "] " << "Using SNMP version " << m_snmpVersion;
 
-	/* set the SNMPv3 passphrase */
-	const char *v3AuthenticationPassPhrase = m_authenticationPassPhrase.c_str();
-
 	/* set the SNMP version number */
 	snmpSession.version=SNMP_VERSION_3;
 
@@ -141,44 +153,48 @@ snmp_session SnmpBackend::createSessionV3 ()
 	snmpSession.securityName = strdup( m_username.c_str() );
 	snmpSession.securityNameLen = strlen( snmpSession.securityName );
 
-	/* set the security level to authenticated, but not encrypted */
-	switch( authenticationProtocolStringToEnum(m_securityLevel) ) {
-	   case Snmp::Constants::AUTH_NO_PRIV		:
-		   LOG(Log::INF, LogComponentLevels::mule()) << "[" << m_hostname << "] " << "Setting security level to authenticated, but not encrypted (" << SNMP_SEC_LEVEL_AUTHNOPRIV << ")";
-		   snmpSession.securityLevel = SNMP_SEC_LEVEL_AUTHNOPRIV;
-		   break;
-	   case Snmp::Constants::AUTH_PRIV			:
-		   LOG(Log::INF, LogComponentLevels::mule()) << "[" << m_hostname << "] " << "Setting security level to authenticated and encrypted (" << SNMP_SEC_LEVEL_AUTHPRIV << ")";
-		   snmpSession.securityLevel = SNMP_SEC_LEVEL_AUTHPRIV;
-		   break;
-	   case Snmp::Constants::NO_AUTH_NO_PRIV	:
-		   LOG(Log::INF, LogComponentLevels::mule()) << "[" << m_hostname << "] " << "Setting security level to no authentication (" << SNMP_SEC_LEVEL_NOAUTH << ")";
-		   snmpSession.securityLevel = SNMP_SEC_LEVEL_NOAUTH;
-		   break;
-	   default				:
-		   LOG(Log::ERR, LogComponentLevels::mule()) << "[" << m_hostname << "] " << "Security level was not set properly";
-		   snmpSession.securityLevel = 0;
-		   break;
-	}
-
-	/* set the authentication method to MD5 */
-	snmpSession.securityAuthProto = usmHMACMD5AuthProtocol;
-	snmpSession.securityAuthProtoLen = sizeof(usmHMACMD5AuthProtocol)/sizeof(oid);
-	snmpSession.securityAuthKeyLen = USM_AUTH_KU_LEN;
+	/* set security level */
+	LOG(Log::INF, LogComponentLevels::mule()) << "[" << m_hostname << "] " << "Setting security level to ["<<m_securityLevel<<"]";
+	snmpSession.securityLevel = securityLevelToInt(m_securityLevel);
+	
+	auto generateSecurityKey = [] (const std::string& type, const char* passphrase, const oid* protocol, const size_t length, u_char* keyDestination, size_t* keyLength) {
+		LOG(Log::INF) << "Generating Ku for type ["<<type<<"]";
+		if (generate_Ku(protocol, length, (u_char *) passphrase, strlen(passphrase), keyDestination, keyLength) != SNMPERR_SUCCESS)
+		{
+			snmp_perror("SnmpModule");
+			snmp_log(LOG_ERR, "Error generating Ku from %s pass phrase. \n", type);
+			exit(1);
+		}		
+	};
 
 	/* set the authentication key to a MD5 hashed version of our
 	* passphrase "The Net-SNMP Demo Password" (which must be at least 8
 	* characters long)
 	*/
-	if (generate_Ku(snmpSession.securityAuthProto,
-		   snmpSession.securityAuthProtoLen,
-		   (u_char *) v3AuthenticationPassPhrase, strlen(v3AuthenticationPassPhrase),
-		   snmpSession.securityAuthKey,
-		   &snmpSession.securityAuthKeyLen) != SNMPERR_SUCCESS)
+	if(snmpSession.securityLevel >= SNMP_SEC_LEVEL_AUTHNOPRIV)
 	{
-	   snmp_perror("SnmpModule");
-	   snmp_log(LOG_ERR, "Error generating Ku from authentication pass phrase. \n");
-	   exit(1);
+		/* set authentication protocol */
+		snmpSession.securityAuthProto = securityProtocolToOid(m_authenticationProtocol);
+		snmpSession.securityAuthProtoLen = sizeof(snmpSession.securityAuthProto)/sizeof(oid);
+		snmpSession.securityAuthKeyLen = USM_AUTH_KU_LEN;
+
+		generateSecurityKey("authentication", m_authenticationPassPhrase.c_str(),
+			snmpSession.securityAuthProto, snmpSession.securityAuthProtoLen,		
+			snmpSession.securityAuthKey, &snmpSession.securityAuthKeyLen);
+	}
+
+	/* privacy key to snmp_session instance fields. TODO: write note here explaining securityAuthProto
+	*/
+	if(snmpSession.securityLevel >= SNMP_SEC_LEVEL_AUTHPRIV)
+	{
+		/* set privacy protocol */
+		snmpSession.securityPrivProto = securityProtocolToOid(m_privacyProtocol);
+		snmpSession.securityPrivProtoLen = sizeof(snmpSession.securityPrivProto)/sizeof(oid);
+		snmpSession.securityPrivKeyLen = USM_PRIV_KU_LEN;
+
+		generateSecurityKey("privacy", m_privacyPassPhrase.c_str(),
+			snmpSession.securityPrivProto, snmpSession.securityPrivProtoLen,
+			snmpSession.securityPrivKey, &snmpSession.securityPrivKeyLen);
 	}
 
 	return snmpSession;
@@ -485,15 +501,25 @@ SnmpStatus SnmpBackend::throwIfSnmpResponseError ( int status, netsnmp_pdu *resp
 	return Snmp_Bad;
 }
 
-unsigned int SnmpBackend::authenticationProtocolStringToEnum ( const std::string & authenticationProtocol )
+int SnmpBackend::securityLevelToInt ( const std::string & securityLevel )
 {
+	if (securityLevel == "noAuthNoPriv") 	return SNMP_SEC_LEVEL_NOAUTH;
+	if (securityLevel == "authNoPriv") 		return SNMP_SEC_LEVEL_AUTHNOPRIV;
+	if (securityLevel == "authPriv") 		return SNMP_SEC_LEVEL_AUTHPRIV;
+	std::ostringstream err;
+	err << __FUNCTION__ << " invalid security level string received ["<<securityLevel<<"], valid options are [noAuthNoPriv|authNoPriv|authPriv]";
+	throw std::runtime_error(err.str());
+}
 
-	if (authenticationProtocol == "authNoPriv") return Snmp::Constants::SecurityLevel::AUTH_NO_PRIV;
-	if (authenticationProtocol == "authPriv") return Snmp::Constants::SecurityLevel::AUTH_PRIV;
-	if (authenticationProtocol == "noAuthNoPriv") return Snmp::Constants::SecurityLevel::NO_AUTH_NO_PRIV;
-
-	return 0;
-
+oid* SnmpBackend::securityProtocolToOid( const std::string & protocol )
+{
+	if (protocol == "MD5") 	return usmHMACMD5AuthProtocol;
+	if (protocol == "SHA") 	return usmHMACSHA1AuthProtocol;
+	if (protocol == "DES") 	return usmHMACMD5AuthProtocol;
+	if (protocol == "AES") 	return usmHMACSHA1AuthProtocol;
+	std::ostringstream err;
+	err << __FUNCTION__ << " invalid security protocol string received ["<<protocol<<"], valid options are [MD5|SHA|DES|AES]";
+	throw std::runtime_error(err.str());
 }
 
 }

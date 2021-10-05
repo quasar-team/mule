@@ -66,6 +66,17 @@ public:
 				std::string authenticationPassPhrase,
 				int snmpMaxRetries,
 				int snmpTimeoutUs);
+	SnmpBackend(std::string hostname,
+				std::string snmpVersion,
+				std::string community,
+				std::string username,
+				std::string securityLevel,
+				std::string authenticationProtocol,
+				std::string authenticationPassPhrase,
+				std::string privacyProtocol,
+				std::string privacyPassPhrase,
+				int snmpMaxRetries,
+				int snmpTimeoutUs);				
 	~SnmpBackend();
 
 private:
@@ -81,6 +92,8 @@ private:
 	std::string m_securityLevel;
 	std::string m_authenticationProtocol;
 	std::string m_authenticationPassPhrase;
+	std::string m_privacyProtocol;
+	std::string m_privacyPassPhrase;
 
 	const int m_snmpMaxRetries;
 	const int m_snmpTimeoutUs;
@@ -91,7 +104,8 @@ private:
 
 	SnmpStatus throwIfSnmpResponseError ( int status, netsnmp_pdu *response );
 	std::vector<oid> prepareOid ( const std::string& oidOfInterest );
-	unsigned int authenticationProtocolStringToEnum ( const std::string & authenticationProtocol );
+	int securityLevelToInt ( const std::string & securityLevel );
+	oid* securityProtocolToOid( const std::string & protocol );
 	std::string oidToString(const oid * objid, size_t objidlen, const netsnmp_variable_list * variable);
 	std::pair<SnmpStatus, unsigned char > translateIntToBoolean ( int32_t rawValue );
 
