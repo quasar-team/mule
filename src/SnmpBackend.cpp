@@ -167,15 +167,13 @@ snmp_session SnmpBackend::createSessionV3 ()
 		}		
 	};
 
-	/* set the authentication key to a MD5 hashed version of our
-	* passphrase "The Net-SNMP Demo Password" (which must be at least 8
-	* characters long)
-	*/
+	/* set authentication protocol details and key on session instance */
 	if(snmpSession.securityLevel >= SNMP_SEC_LEVEL_AUTHNOPRIV)
 	{
 		/* set authentication protocol */
-		snmpSession.securityAuthProto = securityProtocolToOid(m_authenticationProtocol);
-		snmpSession.securityAuthProtoLen = sizeof(snmpSession.securityAuthProto)/sizeof(oid);
+		const auto oidDetails = securityProtocolToOidDetails(m_authenticationProtocol);
+		snmpSession.securityAuthProto = std::get<0>(oidDetails);
+		snmpSession.securityAuthProtoLen = std::get<1>(oidDetails);
 		snmpSession.securityAuthKeyLen = USM_AUTH_KU_LEN;
 
 		generateSecurityKey("authentication", m_authenticationPassPhrase.c_str(),
@@ -183,13 +181,13 @@ snmp_session SnmpBackend::createSessionV3 ()
 			snmpSession.securityAuthKey, &snmpSession.securityAuthKeyLen);
 	}
 
-	/* privacy key to snmp_session instance fields. TODO: write note here explaining securityAuthProto
-	*/
+	/* set privacy protocol details and key on session instance	*/
 	if(snmpSession.securityLevel >= SNMP_SEC_LEVEL_AUTHPRIV)
 	{
 		/* set privacy protocol */
-		snmpSession.securityPrivProto = securityProtocolToOid(m_privacyProtocol);
-		snmpSession.securityPrivProtoLen = sizeof(snmpSession.securityPrivProto)/sizeof(oid);
+		const auto oidDetails = securityProtocolToOidDetails(m_privacyProtocol);
+		snmpSession.securityPrivProto = std::get<0>(oidDetails);
+		snmpSession.securityPrivProtoLen = std::get<1>(oidDetails);
 		snmpSession.securityPrivKeyLen = USM_PRIV_KU_LEN;
 
 		generateSecurityKey("privacy", m_privacyPassPhrase.c_str(),
@@ -503,20 +501,20 @@ SnmpStatus SnmpBackend::throwIfSnmpResponseError ( int status, netsnmp_pdu *resp
 
 int SnmpBackend::securityLevelToInt ( const std::string & securityLevel )
 {
-	if (securityLevel == "noAuthNoPriv") 	return SNMP_SEC_LEVEL_NOAUTH;
-	if (securityLevel == "authNoPriv") 		return SNMP_SEC_LEVEL_AUTHNOPRIV;
-	if (securityLevel == "authPriv") 		return SNMP_SEC_LEVEL_AUTHPRIV;
+	if (securityLevel == "noAuthNoPriv") return SNMP_SEC_LEVEL_NOAUTH;
+	if (securityLevel == "authNoPriv") 	 return SNMP_SEC_LEVEL_AUTHNOPRIV;
+	if (securityLevel == "authPriv") 	 return SNMP_SEC_LEVEL_AUTHPRIV;
 	std::ostringstream err;
 	err << __FUNCTION__ << " invalid security level string received ["<<securityLevel<<"], valid options are [noAuthNoPriv|authNoPriv|authPriv]";
 	throw std::runtime_error(err.str());
 }
 
-oid* SnmpBackend::securityProtocolToOid( const std::string & protocol )
+std::tuple<oid*, size_t> SnmpBackend::securityProtocolToOidDetails( const std::string & protocol )
 {
-	if (protocol == "MD5") 	return usmHMACMD5AuthProtocol;
-	if (protocol == "SHA") 	return usmHMACSHA1AuthProtocol;
-	if (protocol == "DES") 	return usmHMACMD5AuthProtocol;
-	if (protocol == "AES") 	return usmHMACSHA1AuthProtocol;
+	if (protocol == "MD5") 	return std::make_tuple(usmHMACMD5AuthProtocol, USM_AUTH_PROTO_MD5_LEN);
+	if (protocol == "SHA") 	return std::make_tuple(usmHMACSHA1AuthProtocol, USM_AUTH_PROTO_SHA_LEN);
+	if (protocol == "DES") 	return std::make_tuple(usmHMACMD5AuthProtocol, USM_AUTH_PROTO_MD5_LEN);
+	if (protocol == "AES") 	return std::make_tuple(usmHMACSHA1AuthProtocol, USM_AUTH_PROTO_SHA_LEN);
 	std::ostringstream err;
 	err << __FUNCTION__ << " invalid security protocol string received ["<<protocol<<"], valid options are [MD5|SHA|DES|AES]";
 	throw std::runtime_error(err.str());

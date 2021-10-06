@@ -34,6 +34,7 @@
 #include <vector>
 #include <variant>
 #include <mutex>
+#include <tuple>
 
 #include <net-snmp/net-snmp-config.h>
 #include <net-snmp/net-snmp-includes.h>
@@ -105,7 +106,7 @@ private:
 	SnmpStatus throwIfSnmpResponseError ( int status, netsnmp_pdu *response );
 	std::vector<oid> prepareOid ( const std::string& oidOfInterest );
 	int securityLevelToInt ( const std::string & securityLevel );
-	oid* securityProtocolToOid( const std::string & protocol );
+	std::tuple<oid*, size_t> securityProtocolToOidDetails( const std::string & protocol );
 	std::string oidToString(const oid * objid, size_t objidlen, const netsnmp_variable_list * variable);
 	std::pair<SnmpStatus, unsigned char > translateIntToBoolean ( int32_t rawValue );
 
