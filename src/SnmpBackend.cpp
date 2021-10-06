@@ -158,13 +158,13 @@ snmp_session SnmpBackend::createSessionV3 ()
 	snmpSession.securityLevel = securityLevelToInt(m_securityLevel);
 	
 	auto generateSecurityKey = [] (const std::string& type, const oid* protocol, const size_t protocolLength, const char* passphrase, u_char* keyDestination, size_t* keyLength) {
-		LOG(Log::INF) << "Generating Ku for type ["<<type<<"]";
 		if (generate_Ku(protocol, protocolLength, (u_char *) passphrase, strlen(passphrase), keyDestination, keyLength) != SNMPERR_SUCCESS)
 		{
 			snmp_perror("SnmpModule");
 			snmp_log(LOG_ERR, "Error generating Ku from %s pass phrase. \n", type);
 			exit(1);
 		}		
+		LOG(Log::INF, LogComponentLevels::mule()) << "Generated Ku for type ["<<type<<"], key length ["<<*keyLength<<"]";
 	};
 
 	/* set authentication protocol details and key on session instance */
@@ -404,7 +404,7 @@ SnmpStatus SnmpBackend::snmpSet( const std::string& oidOfInterest, snmpSetValue 
 	}
 	catch (const std::exception& e)
 	{
-		LOG(Log::ERR) << "At snmpSet to: " << getHostName() << " " << e.what();
+		LOG(Log::ERR, LogComponentLevels::mule()) << "At snmpSet to: " << getHostName() << " " << e.what();
 	}
 
 	if (response)
@@ -510,12 +510,12 @@ int SnmpBackend::securityLevelToInt ( const std::string & securityLevel )
 	throw std::runtime_error(err.str());
 }
 
-std::tuple<oid*, size_t> SnmpBackend::securityProtocolToOidDetails( const std::string & protocol )
+std::pair<oid*, size_t> SnmpBackend::securityProtocolToOidDetails( const std::string & protocol )
 {
-	if (protocol == "MD5") 	return std::make_tuple(usmHMACMD5AuthProtocol, USM_AUTH_PROTO_MD5_LEN);
-	if (protocol == "SHA") 	return std::make_tuple(usmHMACSHA1AuthProtocol, USM_AUTH_PROTO_SHA_LEN);
-	if (protocol == "DES") 	return std::make_tuple(usmDESPrivProtocol, USM_PRIV_PROTO_DES_LEN);
-	if (protocol == "AES") 	return std::make_tuple(usmAESPrivProtocol, USM_PRIV_PROTO_AES_LEN);
+	if (protocol == "MD5") 	return std::make_pair(usmHMACMD5AuthProtocol, USM_AUTH_PROTO_MD5_LEN);
+	if (protocol == "SHA") 	return std::make_pair(usmHMACSHA1AuthProtocol, USM_AUTH_PROTO_SHA_LEN);
+	if (protocol == "DES") 	return std::make_pair(usmDESPrivProtocol, USM_PRIV_PROTO_DES_LEN);
+	if (protocol == "AES") 	return std::make_pair(usmAESPrivProtocol, USM_PRIV_PROTO_AES_LEN);
 	std::ostringstream err;
 	err << __FUNCTION__ << " invalid security protocol string received ["<<protocol<<"], valid options are [MD5|SHA|DES|AES]";
 	throw std::runtime_error(err.str());

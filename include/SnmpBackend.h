@@ -106,7 +106,7 @@ private:
 	SnmpStatus throwIfSnmpResponseError ( int status, netsnmp_pdu *response );
 	std::vector<oid> prepareOid ( const std::string& oidOfInterest );
 	int securityLevelToInt ( const std::string & securityLevel );
-	std::tuple<oid*, size_t> securityProtocolToOidDetails( const std::string & protocol );
+	std::pair<oid*, size_t> securityProtocolToOidDetails( const std::string & protocol );
 	std::string oidToString(const oid * objid, size_t objidlen, const netsnmp_variable_list * variable);
 	std::pair<SnmpStatus, unsigned char > translateIntToBoolean ( int32_t rawValue );
 
