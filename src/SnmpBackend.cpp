@@ -157,9 +157,9 @@ snmp_session SnmpBackend::createSessionV3 ()
 	LOG(Log::INF, LogComponentLevels::mule()) << "[" << m_hostname << "] " << "Setting security level to ["<<m_securityLevel<<"]";
 	snmpSession.securityLevel = securityLevelToInt(m_securityLevel);
 	
-	auto generateSecurityKey = [] (const std::string& type, const char* passphrase, const oid* protocol, const size_t length, u_char* keyDestination, size_t* keyLength) {
+	auto generateSecurityKey = [] (const std::string& type, const oid* protocol, const size_t protocolLength, const char* passphrase, u_char* keyDestination, size_t* keyLength) {
 		LOG(Log::INF) << "Generating Ku for type ["<<type<<"]";
-		if (generate_Ku(protocol, length, (u_char *) passphrase, strlen(passphrase), keyDestination, keyLength) != SNMPERR_SUCCESS)
+		if (generate_Ku(protocol, protocolLength, (u_char *) passphrase, strlen(passphrase), keyDestination, keyLength) != SNMPERR_SUCCESS)
 		{
 			snmp_perror("SnmpModule");
 			snmp_log(LOG_ERR, "Error generating Ku from %s pass phrase. \n", type);
@@ -176,12 +176,13 @@ snmp_session SnmpBackend::createSessionV3 ()
 		snmpSession.securityAuthProtoLen = std::get<1>(oidDetails);
 		snmpSession.securityAuthKeyLen = USM_AUTH_KU_LEN;
 
-		generateSecurityKey("authentication", m_authenticationPassPhrase.c_str(),
-			snmpSession.securityAuthProto, snmpSession.securityAuthProtoLen,		
+		generateSecurityKey("authentication", snmpSession.securityAuthProto, snmpSession.securityAuthProtoLen,
+			m_authenticationPassPhrase.c_str(),
 			snmpSession.securityAuthKey, &snmpSession.securityAuthKeyLen);
 	}
 
-	/* set privacy protocol details and key on session instance	*/
+	/* set privacy protocol details and key on session instance
+	*/
 	if(snmpSession.securityLevel >= SNMP_SEC_LEVEL_AUTHPRIV)
 	{
 		/* set privacy protocol */
@@ -190,8 +191,8 @@ snmp_session SnmpBackend::createSessionV3 ()
 		snmpSession.securityPrivProtoLen = std::get<1>(oidDetails);
 		snmpSession.securityPrivKeyLen = USM_PRIV_KU_LEN;
 
-		generateSecurityKey("privacy", m_privacyPassPhrase.c_str(),
-			snmpSession.securityPrivProto, snmpSession.securityPrivProtoLen,
+		generateSecurityKey("privacy", snmpSession.securityAuthProto, snmpSession.securityAuthProtoLen, // AuthProto - I know, internet says so.
+			m_privacyPassPhrase.c_str(),
 			snmpSession.securityPrivKey, &snmpSession.securityPrivKeyLen);
 	}
 
@@ -513,8 +514,8 @@ std::tuple<oid*, size_t> SnmpBackend::securityProtocolToOidDetails( const std::s
 {
 	if (protocol == "MD5") 	return std::make_tuple(usmHMACMD5AuthProtocol, USM_AUTH_PROTO_MD5_LEN);
 	if (protocol == "SHA") 	return std::make_tuple(usmHMACSHA1AuthProtocol, USM_AUTH_PROTO_SHA_LEN);
-	if (protocol == "DES") 	return std::make_tuple(usmHMACMD5AuthProtocol, USM_AUTH_PROTO_MD5_LEN);
-	if (protocol == "AES") 	return std::make_tuple(usmHMACSHA1AuthProtocol, USM_AUTH_PROTO_SHA_LEN);
+	if (protocol == "DES") 	return std::make_tuple(usmDESPrivProtocol, USM_PRIV_PROTO_DES_LEN);
+	if (protocol == "AES") 	return std::make_tuple(usmAESPrivProtocol, USM_PRIV_PROTO_AES_LEN);
 	std::ostringstream err;
 	err << __FUNCTION__ << " invalid security protocol string received ["<<protocol<<"], valid options are [MD5|SHA|DES|AES]";
 	throw std::runtime_error(err.str());
