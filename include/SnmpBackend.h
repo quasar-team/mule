@@ -35,6 +35,8 @@
 #include <variant>
 #include <mutex>
 #include <tuple>
+#include <memory>
+#include <functional>
 
 #include <net-snmp/net-snmp-config.h>
 #include <net-snmp/net-snmp-includes.h>
@@ -54,6 +56,15 @@ typedef std::variant<
 					// mule bool
 					bool> 
 					snmpSetValue;
+
+struct PduDeleter
+{
+	void operator()(netsnmp_pdu* p)
+	{
+		snmp_free_pdu(p);
+	}
+};
+typedef std::unique_ptr<netsnmp_pdu, PduDeleter> PduPtr;
 
 class SnmpBackend {
 
@@ -118,12 +129,29 @@ public:
 	std::pair<SnmpStatus, std::string> snmpGetString( const std::string& oidOfInterest );
 	std::pair<SnmpStatus, std::string> snmpGetTime( const std::string& oidOfInterest );
 	std::pair<SnmpStatus, std::vector<uint8_t>> snmpGetHex( const std::string& oidOfInterest );
-	std::pair<SnmpStatus, float> snmpGetFloat( const std::string& oidOfInterest );
+
+	/**
+	 * Gets a float value where the underlying SNMP data format is string. So, reads string value
+	 * from remote resource, then parses string to get float value.
+	 * @param oidOfInterest target oid on remote resource
+	 * @return float value parsed from the SNMP string value
+	 */
+	std::pair<SnmpStatus, float> snmpGetFloatFromString( const std::string& oidOfInterest );
+
+	/**
+	 * Gets a float value where the underlying SNMP data format is string. So, reads int value
+	 * from remote resource, then multiplies by the scale factor. So, if int value retrieved
+	 * is 1234, and scale factor is 0.01, then returned value is ~12.34.
+	 * @param oidOfInterest target oid on remote resource
+	 * @param scaleFactor scaling factor, retrieved integer value will be multiplied by this
+	 * @return float value scaled according to the scale factor
+	 */
+	std::pair<SnmpStatus, float> snmpGetFloatFromInt( const std::string& oidOfInterest, const float& scaleFactor );
 
 	std::vector<Oid> snmpDeviceWalk ( const std::string& seedOid );
 	netsnmp_pdu * snmpGetNext( const std::string& oidOfInterest );
 	SnmpStatus snmpSet( const std::string& oidOfInterest, snmpSetValue & value );
-	netsnmp_pdu * snmpGet( const std::string& oidOfInterest );
+	PduPtr snmpGet( const std::string& oidOfInterest );
 
 	std::string getHostName() { return m_hostname; };
 

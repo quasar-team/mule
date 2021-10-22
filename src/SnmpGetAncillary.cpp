@@ -42,7 +42,7 @@ std::pair<SnmpStatus, int32_t> SnmpBackend::snmpGetInt( const std::string& oidOf
 
 	netsnmp_variable_list *vars;
 	int32_t value(0);
-	netsnmp_pdu * response = snmpGet ( oidOfInterest );
+	PduPtr response = snmpGet ( oidOfInterest );
 
 	if (response)
 	{
@@ -53,19 +53,15 @@ std::pair<SnmpStatus, int32_t> SnmpBackend::snmpGetInt( const std::string& oidOf
 			if (vars->type == ASN_INTEGER)
 			{
 				value = *vars->val.integer;
-				if (response) snmp_free_pdu(response);
 				return std::pair<SnmpStatus, int32_t>(Snmp_Good, value);
 			}
 			else
 			{
 				LOG(Log::TRC, LogComponentLevels::mule()) << "There is no such variable name in this MIB. Type: 0x" << std::hex << (int)(vars->type)
 								<< ". Failed OID: " << oidOfInterest;
-				if (response) snmp_free_pdu(response);
 				return std::pair<SnmpStatus, int32_t>(Snmp_BadNoDataAvailable, value);
 			}
 		}
-
-		snmp_free_pdu(response);
 
 	}
 
@@ -78,7 +74,7 @@ std::pair<SnmpStatus, std::string> SnmpBackend::snmpGetString( const std::string
 
 	netsnmp_variable_list *vars;
 	std::string value("");
-	netsnmp_pdu * response = snmpGet ( oidOfInterest );
+	PduPtr response = snmpGet ( oidOfInterest );
 
 	if (response)
 	{
@@ -89,19 +85,15 @@ std::pair<SnmpStatus, std::string> SnmpBackend::snmpGetString( const std::string
 			if (vars->type == ASN_OCTET_STR)
 			{
 				value = (reinterpret_cast<const char*>(vars->val.string));
-				if (response) snmp_free_pdu(response);
 				return std::pair<SnmpStatus, std::string>(Snmp_Good, value);
 			}
 			else
 			{
 				LOG(Log::TRC, LogComponentLevels::mule()) << "There is no such variable name in this MIB. Type: 0x" << std::hex << (int)(vars->type)
 								<< ". Failed OID: " << oidOfInterest;
-				if (response) snmp_free_pdu(response);
 				return std::pair<SnmpStatus, std::string>(Snmp_BadNoDataAvailable, value);
 			}
 		}
-
-		snmp_free_pdu(response);
 
 	}
 
@@ -116,7 +108,7 @@ std::pair<SnmpStatus, unsigned char > SnmpBackend::snmpGetBoolean( const std::st
 
 	netsnmp_variable_list *vars;
 	int32_t value(0);
-	netsnmp_pdu * response = snmpGet ( oidOfInterest );
+	PduPtr response = snmpGet ( oidOfInterest );
 
 	if (response)
 	{
@@ -128,19 +120,15 @@ std::pair<SnmpStatus, unsigned char > SnmpBackend::snmpGetBoolean( const std::st
 			{
 				value = *vars->val.integer;
 				std::pair<SnmpStatus, unsigned char > castedValue = translateIntToBoolean ( value );
-				if (response) snmp_free_pdu(response);
 				return std::pair<SnmpStatus, unsigned char >( castedValue );
 			}
 			else
 			{
 				LOG(Log::TRC, LogComponentLevels::mule()) << "There is no such variable name in this MIB. Type: 0x" << std::hex << (int)(vars->type)
 								<< ". Failed OID: " << oidOfInterest;
-				if (response) snmp_free_pdu(response);
 				return std::pair<SnmpStatus, unsigned char >(Snmp_BadNoDataAvailable, value);
 			}
 		}
-
-		snmp_free_pdu(response);
 
 	}
 
@@ -153,7 +141,7 @@ std::pair<SnmpStatus, std::string> SnmpBackend::snmpGetTime( const std::string& 
 
 	netsnmp_variable_list *vars;
 	time_t value(0);
-	netsnmp_pdu * response = snmpGet ( oidOfInterest );
+	PduPtr response = snmpGet ( oidOfInterest );
 
 	if (response)
 	{
@@ -173,20 +161,15 @@ std::pair<SnmpStatus, std::string> SnmpBackend::snmpGetTime( const std::string& 
 					{
 						status = Snmp_Good;
 					}
-					if (response) snmp_free_pdu(response);
 					return std::pair<SnmpStatus, std::string>( status, timeString );
 				}
 				else
 				{
 					LOG(Log::TRC, LogComponentLevels::mule()) << "There is no such variable name in this MIB. Type: 0x" << std::hex << (int)(vars->type)
 									<< ". Failed OID: " << oidOfInterest;
-					if (response) snmp_free_pdu(response);
 					return std::pair<SnmpStatus, std::string>(Snmp_BadNoDataAvailable, "");
 				}
 		}
-
-
-		snmp_free_pdu(response);
 
 	}
 
@@ -199,7 +182,7 @@ std::pair<SnmpStatus, std::vector<uint8_t>> SnmpBackend::snmpGetHex( const std::
 
 	netsnmp_variable_list *vars;
 	std::vector<uint8_t> value{};
-	netsnmp_pdu * response = snmpGet ( oidOfInterest );
+	PduPtr response = snmpGet ( oidOfInterest );
 
 	if (response)
 	{
@@ -212,8 +195,6 @@ std::pair<SnmpStatus, std::vector<uint8_t>> SnmpBackend::snmpGetHex( const std::
 
 				uint8_t* myHexValue = (reinterpret_cast<uint8_t*>(vars->val.string));
 				std::vector<uint8_t> hexValue(&myHexValue[0], &myHexValue[vars->val_len]);
-
-				if (response) snmp_free_pdu(response);
 				return std::pair<SnmpStatus, std::vector<uint8_t>>(Snmp_Good, hexValue);
 
 			}
@@ -222,13 +203,10 @@ std::pair<SnmpStatus, std::vector<uint8_t>> SnmpBackend::snmpGetHex( const std::
 
 				LOG(Log::TRC, LogComponentLevels::mule()) << "There is no such variable name in this MIB. Type: 0x" << std::hex << (int)(vars->type)
 								<< ". Failed OID: " << oidOfInterest;
-				if (response) snmp_free_pdu(response);
 				return std::pair<SnmpStatus, std::vector<uint8_t>>(Snmp_BadNoDataAvailable, value);
 
 			}
 		}
-
-		snmp_free_pdu(response);
 
 	}
 
@@ -236,12 +214,12 @@ std::pair<SnmpStatus, std::vector<uint8_t>> SnmpBackend::snmpGetHex( const std::
 
 }
 
-std::pair<SnmpStatus, float> SnmpBackend::snmpGetFloat( const std::string& oidOfInterest )
+std::pair<SnmpStatus, float> SnmpBackend::snmpGetFloatFromString( const std::string& oidOfInterest )
 {
 
 	netsnmp_variable_list *vars;
 	float value = 0.0;
-	netsnmp_pdu * response = snmpGet ( oidOfInterest );
+	PduPtr response = snmpGet ( oidOfInterest );
 
 	if (response)
 	{
@@ -255,7 +233,6 @@ std::pair<SnmpStatus, float> SnmpBackend::snmpGetFloat( const std::string& oidOf
 				std::string castToString = (reinterpret_cast<const char*>(vars->val.string));
 				if ( castToString == "N/A" )
 				{
-					if (response) snmp_free_pdu(response);
 					return std::pair<SnmpStatus, float>(Snmp_BadNoDataAvailable, value);
 				}
 				else
@@ -269,7 +246,6 @@ std::pair<SnmpStatus, float> SnmpBackend::snmpGetFloat( const std::string& oidOf
 						LOG(Log::ERR, LogComponentLevels::mule()) << e.what() << ": Cannot convert sensor value. Due to sensor type? (OID:" << oidOfInterest << ")";
 					}
 				}
-				if (response) snmp_free_pdu(response);
 				return std::pair<SnmpStatus, float>(Snmp_Good, value);
 
 			}
@@ -278,18 +254,21 @@ std::pair<SnmpStatus, float> SnmpBackend::snmpGetFloat( const std::string& oidOf
 
 				LOG(Log::TRC, LogComponentLevels::mule()) << "There is no such variable name in this MIB. Type: 0x" << std::hex << (int)(vars->type)
 								<< ". Failed OID: " << oidOfInterest;
-				if (response) snmp_free_pdu(response);
 				return std::pair<SnmpStatus, float>(Snmp_BadNoDataAvailable, value);
 
 			}
 		}
 
-		snmp_free_pdu(response);
-
 	}
 
 	return std::pair<SnmpStatus, float>(Snmp_BadNotImplemented, value);
 
+}
+
+std::pair<SnmpStatus, float> SnmpBackend::snmpGetFloatFromInt( const std::string& oidOfInterest, const float& scaleFactor )
+{
+	const auto intResult = snmpGetInt(oidOfInterest);
+	return { std::get<0>(intResult), scaleFactor * std::get<1>(intResult) };
 }
 
 std::string SnmpBackend::oidToString(const oid * objid, size_t objidlen, const netsnmp_variable_list * vars)
