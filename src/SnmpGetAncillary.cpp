@@ -214,7 +214,7 @@ std::pair<SnmpStatus, std::vector<uint8_t>> SnmpBackend::snmpGetHex( const std::
 
 }
 
-std::pair<SnmpStatus, float> SnmpBackend::snmpGetFloat( const std::string& oidOfInterest )
+std::pair<SnmpStatus, float> SnmpBackend::snmpGetFloatFromString( const std::string& oidOfInterest )
 {
 
 	netsnmp_variable_list *vars;
@@ -263,6 +263,12 @@ std::pair<SnmpStatus, float> SnmpBackend::snmpGetFloat( const std::string& oidOf
 
 	return std::pair<SnmpStatus, float>(Snmp_BadNotImplemented, value);
 
+}
+
+std::pair<SnmpStatus, float> SnmpBackend::snmpGetFloatFromInt( const std::string& oidOfInterest, const float& scaleFactor )
+{
+	const auto intResult = snmpGetInt(oidOfInterest);
+	return { std::get<0>(intResult), scaleFactor * std::get<1>(intResult) };
 }
 
 std::string SnmpBackend::oidToString(const oid * objid, size_t objidlen, const netsnmp_variable_list * vars)
