@@ -41,13 +41,6 @@ namespace Snmp
 	int const SNMP_TIMEOUT = 1000000;
 	int const SNMP_MAX_RETRIES = 2;
 
-    enum SecurityLevel
-    {
-    	NO_AUTH_NO_PRIV = 1,
-		AUTH_NO_PRIV = 2,
-		AUTH_PRIV = 3
-    };
-
     enum Pdu
     {
         GET = 0,
