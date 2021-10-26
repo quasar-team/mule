@@ -75,6 +75,10 @@ SnmpBackend::SnmpBackend(std::string hostname,
 
 	try
 	{
+		const auto envMIBS = getenv("MIBS");
+		const auto envMIBDIRS = getenv("MIBDIRS");
+		LOG(Log::INF, LogComponentLevels::mule()) << __FUNCTION__ << " calling init_snmp with $env:MIBS ["<<( envMIBS? envMIBS : "NULL" )<<"] $env.MIBDIRS ["<<( envMIBDIRS? envMIBDIRS : "NULL" )<<"]";
+		init_snmp("mule");
 		( m_snmpVersion == "3" ) ? m_snmpSession = createSessionV3() : m_snmpSession = createSessionV2();
 
 		/*
@@ -127,8 +131,6 @@ snmp_session SnmpBackend::createSessionV2 ()
 
 snmp_session SnmpBackend::createSessionV3 ()
 {
-
-	init_snmp("mule");
 
 	snmp_session snmpSession;
 	/*
