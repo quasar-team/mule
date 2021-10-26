@@ -161,7 +161,7 @@ snmp_session SnmpBackend::createSessionV3 ()
 		if (generate_Ku(protocol, protocolLength, (u_char *) passphrase, strlen(passphrase), keyDestination, keyLength) != SNMPERR_SUCCESS)
 		{
 			snmp_perror("SnmpModule");
-			snmp_log(LOG_ERR, "Error generating Ku from %s pass phrase. \n", type);
+			snmp_log(LOG_ERR, "Error generating Ku from %s pass phrase. \n", type.c_str());
 			exit(1);
 		}		
 		LOG(Log::INF, LogComponentLevels::mule()) << "Generated Ku for type ["<<type<<"], key length ["<<*keyLength<<"]";
@@ -501,8 +501,8 @@ int SnmpBackend::securityLevelToInt ( const std::string & securityLevel )
 	if (securityLevel == "authNoPriv") 	 return SNMP_SEC_LEVEL_AUTHNOPRIV;
 	if (securityLevel == "authPriv") 	 return SNMP_SEC_LEVEL_AUTHPRIV;
 	std::ostringstream err;
-	err << __FUNCTION__ << " invalid security level string received ["<<securityLevel<<"], valid options are [noAuthNoPriv|authNoPriv|authPriv]";
-	throw std::runtime_error(err.str());
+	err << "invalid security level string received ["<<securityLevel<<"], valid options are [noAuthNoPriv|authNoPriv|authPriv]";
+	snmp_throw_runtime_error_with_origin(err.str());
 }
 
 std::pair<oid*, size_t> SnmpBackend::securityProtocolToOidDetails( const std::string & protocol )
@@ -512,8 +512,8 @@ std::pair<oid*, size_t> SnmpBackend::securityProtocolToOidDetails( const std::st
 	if (protocol == "DES") 	return std::make_pair(usmDESPrivProtocol, USM_PRIV_PROTO_DES_LEN);
 	if (protocol == "AES") 	return std::make_pair(usmAESPrivProtocol, USM_PRIV_PROTO_AES_LEN);
 	std::ostringstream err;
-	err << __FUNCTION__ << " invalid security protocol string received ["<<protocol<<"], valid options are [MD5|SHA|DES|AES]";
-	throw std::runtime_error(err.str());
+	err << "invalid security protocol string received ["<<protocol<<"], valid options are [MD5|SHA|DES|AES]";
+	snmp_throw_runtime_error_with_origin(err.str());
 }
 
 }
