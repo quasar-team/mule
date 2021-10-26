@@ -163,11 +163,7 @@ snmp_session SnmpBackend::createSessionV3 ()
 		if (generate_Ku(protocol, protocolLength, (u_char *) passphrase, strlen(passphrase), keyDestination, keyLength) != SNMPERR_SUCCESS)
 		{
 			snmp_perror("SnmpModule");
-<<<<<<< HEAD
-			snmp_log(LOG_ERR, "Error generating Ku from %s pass phrase. \n", type);
-=======
 			snmp_log(LOG_ERR, "Error generating Ku from %s pass phrase. \n", type.c_str());
->>>>>>> master
 			exit(1);
 		}		
 		LOG(Log::INF, LogComponentLevels::mule()) << "Generated Ku for type ["<<type<<"], key length ["<<*keyLength<<"]";
