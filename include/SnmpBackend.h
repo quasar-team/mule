@@ -34,7 +34,6 @@
 #include <vector>
 #include <variant>
 #include <mutex>
-#include <tuple>
 
 #include <net-snmp/net-snmp-config.h>
 #include <net-snmp/net-snmp-includes.h>
