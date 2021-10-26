@@ -293,14 +293,13 @@ std::vector<Oid> SnmpBackend::snmpDeviceWalk ( const std::string& seedOid )
 	return walkedOids;
 }
 
-netsnmp_pdu * SnmpBackend::snmpGet( const std::string& oidOfInterest )
+PduPtr SnmpBackend::snmpGet( const std::string& oidOfInterest )
 {
 
 	LOG(Log::TRC, LogComponentLevels::mule()) << "SNMP get OID:" << oidOfInterest << " on device with hostname: " << m_hostname;
 
-	netsnmp_pdu *pdu, *response;
 
-	pdu = snmp_pdu_create(SNMP_MSG_GET);
+	netsnmp_pdu *pdu = snmp_pdu_create(SNMP_MSG_GET);
 
 	std::vector<oid> subIdentifierList = prepareOid( oidOfInterest );
 
@@ -318,6 +317,7 @@ netsnmp_pdu * SnmpBackend::snmpGet( const std::string& oidOfInterest )
 
 	LOG(Log::TRC, LogComponentLevels::mule()) << "Sending request";
 
+	netsnmp_pdu *response = nullptr;
 	try
 	{
 		std::lock_guard<std::mutex> guard(m_mutex);
@@ -329,12 +329,7 @@ netsnmp_pdu * SnmpBackend::snmpGet( const std::string& oidOfInterest )
 		LOG(Log::ERR, LogComponentLevels::mule()) << "At snmpGet from: " << getHostName() << " ." << e.what();
 	}
 
-	/*
-	 * Caller shall cleanup the response (update functions so far)
-	 */
-
-
-	return response;
+	return PduPtr(response);
 }
 
 SnmpStatus SnmpBackend::snmpSet( const std::string& oidOfInterest, snmpSetValue & value )
