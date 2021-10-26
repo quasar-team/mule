@@ -34,6 +34,8 @@
 #include <vector>
 #include <variant>
 #include <mutex>
+#include <memory>
+#include <functional>
 
 #include <net-snmp/net-snmp-config.h>
 #include <net-snmp/net-snmp-includes.h>
@@ -53,6 +55,15 @@ typedef std::variant<
 					// mule bool
 					bool> 
 					snmpSetValue;
+
+struct PduDeleter
+{
+	void operator()(netsnmp_pdu* p)
+	{
+		snmp_free_pdu(p);
+	}
+};
+typedef std::unique_ptr<netsnmp_pdu, PduDeleter> PduPtr;
 
 class SnmpBackend {
 
@@ -122,7 +133,7 @@ public:
 	std::vector<Oid> snmpDeviceWalk ( const std::string& seedOid );
 	netsnmp_pdu * snmpGetNext( const std::string& oidOfInterest );
 	SnmpStatus snmpSet( const std::string& oidOfInterest, snmpSetValue & value );
-	netsnmp_pdu * snmpGet( const std::string& oidOfInterest );
+	PduPtr snmpGet( const std::string& oidOfInterest );
 
 	std::string getHostName() { return m_hostname; };
 
