@@ -205,7 +205,7 @@ snmp_session SnmpBackend::createSessionV3 ()
 void SnmpBackend::openSession ( snmp_session snmpSession )
 {
 
-	SOCK_STARTUP
+	SOCK_STARTUP;
 
 	try
 	{
