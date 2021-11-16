@@ -42,6 +42,9 @@ public:
 };
 
 }
+#if defined (_MSC_VER ) // i.e. being compiled by MS vis studio
+  #define __PRETTY_FUNCTION__ __FUNCSIG__ // because MS vis studio has no __PRETTY_FUNCTION__
+#endif
 
 #define snmp_throw_runtime_error_with_origin(MSG) throw std::runtime_error(std::string("At ")+__PRETTY_FUNCTION__+" "+MSG)
 
