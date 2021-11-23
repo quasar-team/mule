@@ -162,7 +162,7 @@ snmp_session SnmpBackend::createSessionV3 ()
 	auto generateSecurityKey = [] (const std::string& type, const oid* protocol, const size_t protocolLength, const char* passphrase, u_char* keyDestination, size_t* keyLength) {
 		if (generate_Ku(protocol, protocolLength, (u_char *) passphrase, strlen(passphrase), keyDestination, keyLength) != SNMPERR_SUCCESS)
 		{
-			snmp_perror("SnmpModule");
+			snmp_perror("mule");
 			snmp_log(LOG_ERR, "Error generating Ku from %s pass phrase. \n", type.c_str());
 			exit(1);
 		}		
@@ -219,9 +219,8 @@ void SnmpBackend::openSession ( snmp_session snmpSession )
 	}
 	catch (const std::exception& e)
 	{
-		LOG(Log::ERR, LogComponentLevels::mule()) << "Failed to establish communication. Exiting... " << e.what();
+		LOG(Log::ERR, LogComponentLevels::mule()) << "Failed to establish communication: " << e.what();
 		SOCK_CLEANUP;
-		exit(1);
 	}
 
 }
