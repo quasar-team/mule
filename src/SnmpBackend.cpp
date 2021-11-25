@@ -92,6 +92,7 @@ SnmpBackend::SnmpBackend(std::string hostname,
 	catch (const std::exception& e)
 	{
 		LOG(Log::ERR, LogComponentLevels::mule()) << "While initializing session: " << e.what();
+		throw e;
 	}
 
 };
