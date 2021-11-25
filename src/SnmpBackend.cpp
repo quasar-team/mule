@@ -214,13 +214,16 @@ void SnmpBackend::openSession ( snmp_session snmpSession )
 
 		if ( !m_snmpSessionHandle ) {
 			snmp_perror("ack");
-			throw std::runtime_error("When trying to open SNMP session");
+			std::ostringstream err;
+			err << __FUNCTION__ << "Failed to estblish communication with device: "<<m_hostname;
+			throw std::runtime_error(e.str());
 		}
 	}
 	catch (const std::exception& e)
 	{
-		LOG(Log::ERR, LogComponentLevels::mule()) << "Failed to establish communication: " << e.what();
+		LOG(Log::ERR, LogComponentLevels::mule()) << e.what();
 		SOCK_CLEANUP;
+		throw e; // let client code handle it
 	}
 
 }
