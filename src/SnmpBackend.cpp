@@ -221,7 +221,7 @@ void SnmpBackend::openSession ( snmp_session snmpSession )
 	}
 	catch (const std::exception& e)
 	{
-		LOG(Log::ERR, LogComponentLevels::mule()) << e.what();
+		LOG(Log::ERR, LogComponentLevels::mule()) << "Failed to establish communication: " << e.what();
 		SOCK_CLEANUP;
 		throw e; // let client code handle it
 	}
