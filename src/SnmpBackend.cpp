@@ -215,7 +215,7 @@ void SnmpBackend::openSession ( snmp_session snmpSession )
 
 		if ( !m_snmpSessionHandle ) {
 			snmp_perror("ack");
-			throw std::runtime_error("When trying to open SNMP session");
+			snmp_throw_runtime_error_with_origin("When trying to open SNMP session to " + m_hostname);
 		}
 	}
 	catch (const std::exception& e)
