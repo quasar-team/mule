@@ -213,11 +213,10 @@ void SnmpBackend::openSession ( snmp_session snmpSession )
 		m_sessp = snmp_sess_open(&snmpSession);
 		m_snmpSessionHandle = snmp_sess_session( m_sessp );
 
-		if ( !m_snmpSessionHandle ) {
+		if ( !m_snmpSessionHandle ) 
+		{
 			snmp_perror("ack");
-			std::ostringstream err;
-			err << __FUNCTION__ << "Failed to estblish communication with device: "<<m_hostname;
-			throw std::runtime_error(err.str());
+			snmp_throw_runtime_error_with_origin("When trying to open SNMP session to " + m_hostname);
 		}
 	}
 	catch (const std::exception& e)
