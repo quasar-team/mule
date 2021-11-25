@@ -92,6 +92,7 @@ SnmpBackend::SnmpBackend(std::string hostname,
 	catch (const std::exception& e)
 	{
 		LOG(Log::ERR, LogComponentLevels::mule()) << "While initializing session: " << e.what();
+		throw;
 	}
 
 };
@@ -221,6 +222,7 @@ void SnmpBackend::openSession ( snmp_session snmpSession )
 	{
 		LOG(Log::ERR, LogComponentLevels::mule()) << "Failed to establish communication: " << e.what();
 		SOCK_CLEANUP;
+		throw;
 	}
 
 }
