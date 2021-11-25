@@ -216,7 +216,7 @@ void SnmpBackend::openSession ( snmp_session snmpSession )
 			snmp_perror("ack");
 			std::ostringstream err;
 			err << __FUNCTION__ << "Failed to estblish communication with device: "<<m_hostname;
-			throw std::runtime_error(e.str());
+			throw std::runtime_error(err.str());
 		}
 	}
 	catch (const std::exception& e)
