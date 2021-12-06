@@ -1,13 +1,13 @@
-/* 
+/*
  * @author:     Paris Moschovakos <paris.moschovakos@cern.ch>
- * 
+ *
  * @copyright:  2020 CERN
- * 
+ *
  * @license:
  * LICENSE:
  * Copyright (c) 2020, CERN
  * All rights reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without modification,
  * are permitted provided that the following conditions are met:
  * 1. Redistributions of source code must retain the above copyright notice, this
@@ -25,7 +25,7 @@
  * ANY  THEORY  OF  LIABILITY,   WHETHER IN  CONTRACT, STRICT  LIABILITY,  OR  TORT
  * (INCLUDING  NEGLIGENCE OR OTHERWISE)  ARISING IN ANY WAY OUT OF  THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- * 
+ *
  */
 
 #include <SnmpBackend.h>
@@ -45,7 +45,7 @@ SnmpBackend::SnmpBackend(std::string hostname,
 				std::string authenticationProtocol,
 				std::string authenticationPassPhrase,
 				int snmpMaxRetries,
-				int snmpTimeoutUs) : 
+				int snmpTimeoutUs) :
 				SnmpBackend(hostname, snmpVersion, community, username, securityLevel, authenticationProtocol, m_authenticationPassPhrase, "", "", snmpMaxRetries, snmpTimeoutUs)
 {}
 
@@ -97,7 +97,7 @@ SnmpBackend::SnmpBackend(std::string hostname,
 
 };
 
-SnmpBackend::~SnmpBackend() 
+SnmpBackend::~SnmpBackend()
 {
 
 	// RAII cleanup here
@@ -159,14 +159,14 @@ snmp_session SnmpBackend::createSessionV3 ()
 	/* set security level */
 	LOG(Log::INF, LogComponentLevels::mule()) << "[" << m_hostname << "] " << "Setting security level to ["<<m_securityLevel<<"]";
 	snmpSession.securityLevel = securityLevelToInt(m_securityLevel);
-	
+
 	auto generateSecurityKey = [] (const std::string& type, const oid* protocol, const size_t protocolLength, const char* passphrase, u_char* keyDestination, size_t* keyLength) {
 		if (generate_Ku(protocol, protocolLength, (u_char *) passphrase, strlen(passphrase), keyDestination, keyLength) != SNMPERR_SUCCESS)
 		{
 			snmp_perror("mule");
 			snmp_log(LOG_ERR, "Error generating Ku from %s pass phrase. \n", type.c_str());
 			exit(1);
-		}		
+		}
 		LOG(Log::INF, LogComponentLevels::mule()) << "Generated Ku for type ["<<type<<"], key length ["<<*keyLength<<"]";
 	};
 
@@ -215,7 +215,7 @@ void SnmpBackend::openSession ( snmp_session snmpSession )
 
 		if ( !m_snmpSessionHandle ) {
 			snmp_perror("ack");
-			snmp_throw_runtime_error_with_origin("When trying to open SNMP session to " + m_hostname);
+			snmp_throw_runtime_error_with_origin("When trying to open SNMP session to " + getHostName());
 		}
 	}
 	catch (const std::exception& e)
@@ -329,7 +329,8 @@ PduPtr SnmpBackend::snmpGet( const std::string& oidOfInterest )
 	}
 	catch (const std::exception& e)
 	{
-		LOG(Log::ERR, LogComponentLevels::mule()) << "At snmpGet from: " << getHostName() << " ." << e.what();
+		LOG(Log::ERR, LogComponentLevels::mule()) << "At snmpGet OID:" << oidOfInterest << " from: " << getHostName() << " ." << e.what();
+		throw;
 	}
 
 	return PduPtr(response);
@@ -402,11 +403,12 @@ SnmpStatus SnmpBackend::snmpSet( const std::string& oidOfInterest, snmpSetValue 
 	}
 	catch (const std::exception& e)
 	{
-		LOG(Log::ERR, LogComponentLevels::mule()) << "At snmpSet to: " << getHostName() << " " << e.what();
+		LOG(Log::ERR, LogComponentLevels::mule()) << "At snmpSet OID:" << oidOfInterest << " from: " << getHostName() << " ." << e.what();
+		if (response) snmp_free_pdu(response);
+		throw;
 	}
 
-	if (response)
-		snmp_free_pdu(response);
+	if (response) snmp_free_pdu(response);
 
 	return status;
 }
@@ -435,7 +437,8 @@ netsnmp_pdu * SnmpBackend::snmpGetNext( const std::string& oidOfInterest )
 	}
 	catch (const std::exception& e)
 	{
-		LOG(Log::ERR, LogComponentLevels::mule()) << "With SNMP status: " << status << ". " << e.what();
+        LOG(Log::ERR, LogComponentLevels::mule()) << "At snmpGetNext OID:" << oidOfInterest << " from: " << getHostName() << " ." << e.what();
+		throw;
 	}
 
 	return response;
@@ -477,7 +480,7 @@ SnmpStatus SnmpBackend::throwIfSnmpResponseError ( int status, netsnmp_pdu *resp
 	else
 	{
 
-		if ( status == STAT_SUCCESS ) 
+		if ( status == STAT_SUCCESS )
 		{
 			snmp_throw_runtime_error_with_origin( "Error in packet due to " + snmp_errstring(response->errstat) );
 		}
@@ -503,9 +506,7 @@ int SnmpBackend::securityLevelToInt ( const std::string & securityLevel )
 	if (securityLevel == "noAuthNoPriv") return SNMP_SEC_LEVEL_NOAUTH;
 	if (securityLevel == "authNoPriv") 	 return SNMP_SEC_LEVEL_AUTHNOPRIV;
 	if (securityLevel == "authPriv") 	 return SNMP_SEC_LEVEL_AUTHPRIV;
-	std::ostringstream err;
-	err << "invalid security level string received ["<<securityLevel<<"], valid options are [noAuthNoPriv|authNoPriv|authPriv]";
-	snmp_throw_runtime_error_with_origin(err.str());
+	snmp_throw_runtime_error_with_origin("invalid security level string received [" + securityLevel + "], valid options are [noAuthNoPriv|authNoPriv|authPriv]");
 }
 
 std::pair<oid*, size_t> SnmpBackend::securityProtocolToOidDetails( const std::string & protocol )
@@ -514,9 +515,7 @@ std::pair<oid*, size_t> SnmpBackend::securityProtocolToOidDetails( const std::st
 	if (protocol == "SHA") 	return std::make_pair(usmHMACSHA1AuthProtocol, USM_AUTH_PROTO_SHA_LEN);
 	if (protocol == "DES") 	return std::make_pair(usmDESPrivProtocol, USM_PRIV_PROTO_DES_LEN);
 	if (protocol == "AES") 	return std::make_pair(usmAESPrivProtocol, USM_PRIV_PROTO_AES_LEN);
-	std::ostringstream err;
-	err << "invalid security protocol string received ["<<protocol<<"], valid options are [MD5|SHA|DES|AES]";
-	snmp_throw_runtime_error_with_origin(err.str());
+	snmp_throw_runtime_error_with_origin("invalid security protocol string received [" + protocol + "], valid options are [MD5|SHA|DES|AES]");
 }
 
 }
