@@ -1,0 +1,3 @@
+[submodule "PrepareEcosystem"]
+	path = PrepareEcosystem
+	url = https://gitlab.cern.ch/atlas-dcs-opcua-servers/PrepareEcosystem.git

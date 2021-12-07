@@ -42,7 +42,7 @@ if isCentOS; then
     echo "Resolving dependencies from CVMFS..."
 
     # Sourcing binutils which also take care of the gcc
-    source /cvmfs/sft.cern.ch/lcg/contrib/gcc/8binutils/x86_64-centos7/setup.sh
+    source /cvmfs/sft.cern.ch/lcg/contrib/gcc/11binutils/x86_64-centos7/setup.sh
 
     # Providing BOOST ROOT path. It should be compatible with the g++ above
     export BOOST_ROOT=/cvmfs/sft.cern.ch/lcg/releases/LCG_100/Boost/1.75.0/x86_64-centos7-gcc8-opt/

@@ -273,11 +273,13 @@ std::pair<SnmpStatus, float> SnmpBackend::snmpGetFloatFromInt( const std::string
 
 std::string SnmpBackend::oidToString(const oid * objid, size_t objidlen, const netsnmp_variable_list * vars)
 {
-	char buf[MAX_OID_LEN];
+
 	std::string oid;
-	snprint_variable(buf, MAX_OID_LEN, objid, objidlen, vars);
-	oid.assign(buf, MAX_OID_LEN);
-	oid = oid.substr(0, oid.find_first_of(" "));
+	oid = {std::to_string(*(objid))};
+	for (uint32_t i = 1; i < objidlen; i++)
+	{
+	 	oid += "." + std::to_string(*(objid + i));
+	}
 	return oid;
 }
 

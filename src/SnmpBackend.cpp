@@ -246,7 +246,7 @@ void SnmpBackend::closeSession ()
 std::vector<Oid> SnmpBackend::snmpDeviceWalk ( const std::string& seedOid )
 {
 
-	LOG(Log::INF, LogComponentLevels::mule()) << "SNMP device walk seed OID:" << seedOid << " on device: " << m_hostname;
+	LOG(Log::INF, LogComponentLevels::mule()) << "SNMP device walk seed OID:" << seedOid << " from: " << getHostName();
 
 	netsnmp_variable_list *vars;
 	netsnmp_pdu * response = snmpGetNext ( seedOid );
@@ -254,54 +254,48 @@ std::vector<Oid> SnmpBackend::snmpDeviceWalk ( const std::string& seedOid )
 	Snmp::Oid currentDeviceOid( seedOid );
 	Snmp::Oid nextDeviceOid( seedOid );
 
-	if ( nextDeviceOid.getOidSize() == 14)
-	{
-		currentDeviceOid.setSensor(true);
-		nextDeviceOid.setSensor(true);
-	}
-
 	std::vector<Oid> walkedOids;
 
 	while (  true  )
 	{
 
-		if (response)
-		{
-			for(vars = response->variables; vars; vars = vars->next_variable)
+        if (response)
+	    {
+	 		for(vars = response->variables; vars; vars = vars->next_variable)
+	 		{
+	 			currentDeviceOid = nextDeviceOid;
+	 			nextDeviceOid(oidToString(vars->name, vars->name_length, vars));
+	 		}
+
+	 		snmp_free_pdu(response);
+
+			// Test criteria to break the walking loop
+			LOG(Log::TRC, LogComponentLevels::mule()) << "Current OID: " << currentDeviceOid.getOidString();
+			LOG(Log::TRC, LogComponentLevels::mule()) << "Next OID: " << nextDeviceOid.getOidString();
+
+			// Stop walking due to level change 
+			if ( currentDeviceOid.getOidVector()[currentDeviceOid.getOidSize() - 2] != nextDeviceOid.getOidVector()[nextDeviceOid.getOidSize() - 2] ) 
 			{
-				currentDeviceOid = nextDeviceOid;
-				nextDeviceOid.assign( oidToString(vars->name, vars->name_length, vars) );
-			}
-
-			snmp_free_pdu(response);
-
-			if ( ( currentDeviceOid.getVariable() != nextDeviceOid.getVariable() && currentDeviceOid.getVariable() != 0 ) ||
-					currentDeviceOid.getDeviceType() != nextDeviceOid.getDeviceType() ||
-					!nextDeviceOid.getOidValidity() )
+			 	LOG(Log::INF, LogComponentLevels::mule()) << "SNMP walk reached its end";
 				break;
+			}
 
-			if ( currentDeviceOid.isSensor() &&
-					nextDeviceOid.getDeviceNum() != currentDeviceOid.getDeviceNum() )
+			// Stop walking due size change
+			if ( currentDeviceOid.getOidSize() != nextDeviceOid.getOidSize() ) 
+			{
+			 	LOG(Log::INF, LogComponentLevels::mule()) << "SNMP walk reached its end";
 				break;
-
-			walkedOids.push_back(nextDeviceOid);
-			if ( nextDeviceOid.isSensor() )
-			{
-				LOG(Log::TRC, LogComponentLevels::mule()) << nextDeviceOid.getSensorOid();
-				response = snmpGetNext ( nextDeviceOid.getSensorOid() );
-			}
-			else
-			{
-				LOG(Log::TRC, LogComponentLevels::mule()) << nextDeviceOid.getOid();
-				response = snmpGetNext ( nextDeviceOid.getOid() );
 			}
 
+	 		walkedOids.push_back(nextDeviceOid);
 
-		}
+            response = snmpGetNext ( nextDeviceOid.getOidString() );
+
+	    }
 
 	}
 
-	return walkedOids;
+ 	return walkedOids;
 }
 
 PduPtr SnmpBackend::snmpGet( const std::string& oidOfInterest )
@@ -427,7 +421,6 @@ netsnmp_pdu * SnmpBackend::snmpGetNext( const std::string& oidOfInterest )
 	LOG(Log::TRC, LogComponentLevels::mule()) << "SNMP get next OID:" << oidOfInterest;
 
 	netsnmp_pdu *pdu, *response;
-	SnmpStatus status = Snmp_BadNotImplemented;
 
 	pdu = snmp_pdu_create(SNMP_MSG_GETNEXT);
 
@@ -441,7 +434,7 @@ netsnmp_pdu * SnmpBackend::snmpGetNext( const std::string& oidOfInterest )
 	{
 		std::lock_guard<std::mutex> guard(m_mutex);
 		int snmp_status = snmp_sess_synch_response( m_sessp, pdu, &response );
-		status = throwIfSnmpResponseError( snmp_status, response );
+		throwIfSnmpResponseError( snmp_status, response );
 	}
 	catch (const std::exception& e)
 	{
