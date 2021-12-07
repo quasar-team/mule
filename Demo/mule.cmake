@@ -58,6 +58,7 @@ message(STATUS "Net-SNMP libs [${NETSNMP_LINK_LIBRARIES}]")
 # Boost - use the one defined for mule by sourcing setupEnvironment.sh
 # -------
 set ( BOOST_ROOT $ENV{BOOST_ROOT} )
+set ( Boost_NO_WARN_NEW_VERSIONS ON )
 
 message(STATUS "Taking Boost dependencies from environment:")
 message(STATUS "Boost root [${BOOST_ROOT}]")

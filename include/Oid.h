@@ -1,11 +1,11 @@
 /* 
  * @author:     Paris Moschovakos <paris.moschovakos@cern.ch>
  * 
- * @copyright:  2020 CERN
+ * @copyright:  2021 CERN
  * 
  * @license:
  * LICENSE:
- * Copyright (c) 2020, CERN
+ * Copyright (c) 2021, CERN
  * All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without modification,
@@ -31,6 +31,7 @@
 #pragma once
 
 #include <string>
+#include <vector>
 
 namespace Snmp
 {
@@ -38,56 +39,26 @@ namespace Snmp
 class Oid
 {
 public:
-	Oid();
-	Oid( unsigned int deviceTypeOid, 
-		 unsigned int subDeviceTypeOid, 
-		 unsigned int variableOid, 
-		 unsigned int deviceNumOid, 
-		 unsigned int sequenceNumOid );
-	explicit Oid( std::string oidOfInterest );
+	explicit Oid( const std::string& oidOfInterest );
 	virtual ~Oid();
 
 private:
-	std::string m_rootOid;
-	unsigned int m_deviceTypeOid;
-	unsigned int m_subDeviceTypeOid;
-	unsigned int m_variableOid;
-	unsigned int m_deviceNumOid;
-	unsigned int m_sequenceNumOid = 0;
-	bool m_valid = true;
-	bool m_sensor = false;
-	unsigned int m_oidSize = 0;
+
+	friend class SnmpBackend;
+
+	std::string m_originalString;
+	std::vector<std::string> m_oidVector;
+	uint32_t m_oidSize;
+	void assign( std::string );
 
 public:
 
-	std::string getOid() { return m_rootOid +
-			"." + std::to_string(m_deviceTypeOid) +
-			"." + std::to_string(m_subDeviceTypeOid) +
-			"." + std::to_string(m_variableOid) +
-			"." + std::to_string(m_deviceNumOid);};
+	constexpr std::string& getOidString() { return m_originalString; };
+	const std::vector<std::string> getOidVector() { return m_oidVector; };
+	void printOidFromVector();
+	uint32_t getOidSize() { return m_oidSize; };
+	Oid& operator()( const std::string& );
 
-	std::string getSensorOid() { return getOid() +
-			"." + std::to_string(m_sequenceNumOid);
-	}
-
-	void nextDeviceType() { m_deviceTypeOid++; };
-	void nextSubDeviceType() { m_subDeviceTypeOid++; };
-	void nextVariable() { m_variableOid++; };
-	void nextDeviceNum() { m_deviceNumOid++; };
-
-	unsigned int getDeviceType() {return m_deviceTypeOid;};
-	unsigned int getSubDeviceType() {return m_subDeviceTypeOid;};
-	unsigned int getVariable() {return m_variableOid;};
-	unsigned int getDeviceNum() {return m_deviceNumOid;};
-	unsigned int getSequenceNum() {return m_sequenceNumOid;};
-
-	bool getOidValidity(){return m_valid;};
-	unsigned int getOidSize(){return m_oidSize;};
-
-	bool isSensor(){return m_sensor;};
-	void setSensor(bool sensor){m_sensor = sensor;};
-
-	void assign( std::string );
 };
 
-} // oid
+} // Snmp

@@ -29,27 +29,21 @@
  */
 
 #include <Oid.h>
-#include <MuleLogComponents.h>
-
 #include <vector>
+#include <MuleLogComponents.h>
 
 using namespace Snmp;
 using Mule::LogComponentLevels;
 
-Oid::Oid() : m_deviceTypeOid(0), m_subDeviceTypeOid(0), m_variableOid(0), m_deviceNumOid(0), m_sequenceNumOid(0)
-{
-
-}
-
-Oid::Oid( unsigned int deviceTypeOid, unsigned int subDeviceTypeOid, unsigned int variableOid, unsigned int deviceNumOid, unsigned int sequenceNumOid ) :
-		m_deviceTypeOid(deviceTypeOid), m_subDeviceTypeOid(subDeviceTypeOid), m_variableOid(variableOid), m_deviceNumOid(deviceNumOid), m_sequenceNumOid(sequenceNumOid)
-{
-
-}
-
-Oid::Oid( std::string oidOfInterest )
+Oid::Oid( const std::string& oidOfInterest ) : m_originalString(oidOfInterest)
 {
 	this->assign(oidOfInterest);
+}
+
+Oid& Oid::operator()( const std::string& oidOfInterest )
+{
+	this->assign(oidOfInterest);
+	return *this;
 }
 
 Oid::~Oid()
@@ -59,55 +53,32 @@ Oid::~Oid()
 void Oid::assign ( std::string oidOfInterest )
 {
 
-	std::vector<std::string> oidPart;
+	m_originalString = oidOfInterest;
+	m_oidVector.clear();
 	char delim = '.';
 
 	std::size_t current, previous = 0;
 	current = oidOfInterest.find(delim);
 	while (current != std::string::npos) {
-		oidPart.push_back(oidOfInterest.substr(previous, current - previous));
+		m_oidVector.push_back(oidOfInterest.substr(previous, current - previous));
 		previous = current + 1;
 		current = oidOfInterest.find(delim, previous);
 	}
-	oidPart.push_back(oidOfInterest.substr(previous, current - previous));
+	m_oidVector.push_back(oidOfInterest.substr(previous, current - previous));
 
-	m_oidSize = oidPart.size();
-	m_rootOid = "1.3.6.1.4.1.16394.2.1.1";
+	m_oidSize = m_oidVector.size();
 
-	if ( oidPart.at(6) != "16394" )
+}
+
+void Oid::printOidFromVector()
+{
+	std::string oid;
+
+	for (const auto oidPart: m_oidVector) 
 	{
-		m_valid = false;
-		LOG(Log::DBG, LogComponentLevels::mule()) << "Wrong OID provided: " << oidOfInterest;
-	}
-	else if ( m_oidSize == 12 )
-	{
-		LOG(Log::DBG, LogComponentLevels::mule()) << "Seed for discovering a device was provided: " << oidOfInterest;
-		m_deviceTypeOid = stoi(oidPart.at(10));
-		m_subDeviceTypeOid = stoi(oidPart.at(11));
-		m_variableOid = 0;
-		m_deviceNumOid = 0;
-	}
-	else if ( m_oidSize == 14 ) // This can also be a seed for sensors
-	{
-		LOG(Log::DBG, LogComponentLevels::mule()) << "Full OID provided or seed for discovering sensors: " << oidOfInterest;;
-		m_deviceTypeOid = stoi(oidPart.at(10));
-		m_subDeviceTypeOid = stoi(oidPart.at(11));
-		m_variableOid = stoi(oidPart.at(12));
-		m_deviceNumOid = stoi(oidPart.at(13));
-	}
-	else if ( m_oidSize == 15 )
-	{
-		LOG(Log::DBG, LogComponentLevels::mule()) << "Full sensor OID provided: " << oidOfInterest;
-		m_deviceTypeOid = stoi(oidPart.at(10));
-		m_subDeviceTypeOid = stoi(oidPart.at(11));
-		m_variableOid = stoi(oidPart.at(12));
-		m_deviceNumOid = stoi(oidPart.at(13));
-		m_sequenceNumOid = stoi(oidPart.at(14));
-		m_sensor = true;
-	}
-	else
-	{
-		LOG(Log::ERR, LogComponentLevels::mule()) << "Unknown OID size:"  << oidOfInterest;
-	}
+        oid += oidPart + '.';
+    }
+	oid.pop_back();
+	LOG(Log::INF, LogComponentLevels::mule()) << oid;
 }
 
