@@ -37,25 +37,6 @@ using Mule::LogComponentLevels;
 
 namespace Snmp
 {
-SnmpBackend::SnmpBackend(std::string hostname,
-				std::string snmpVersion,
-				std::string community,
-				int snmpMaxRetries,
-				int snmpTimeoutUs) :
-				SnmpBackend(hostname, snmpVersion, community, "", "", "", "", "", "", snmpMaxRetries, snmpTimeoutUs)
-{}
-
-SnmpBackend::SnmpBackend(std::string hostname,
-				std::string snmpVersion,
-				std::string community,
-				std::string username,
-				std::string securityLevel,
-				std::string authenticationProtocol,
-				std::string authenticationPassPhrase,
-				int snmpMaxRetries,
-				int snmpTimeoutUs) :
-				SnmpBackend(hostname, snmpVersion, community, username, securityLevel, authenticationProtocol, m_authenticationPassPhrase, "", "", snmpMaxRetries, snmpTimeoutUs)
-{}
 
 SnmpBackend::SnmpBackend(std::string hostname,
 				std::string snmpVersion,
@@ -104,6 +85,18 @@ SnmpBackend::SnmpBackend(std::string hostname,
 	}
 
 };
+
+SnmpBackend::SnmpBackend(std::string hostname,
+				std::string snmpVersion,
+				std::string community,
+				std::string username,
+				std::string securityLevel,
+				std::string authenticationProtocol,
+				std::string authenticationPassPhrase,
+				int snmpMaxRetries,
+				int snmpTimeoutUs) :
+				SnmpBackend(hostname, snmpVersion, community, username, securityLevel, authenticationProtocol, m_authenticationPassPhrase, "", "", snmpMaxRetries, snmpTimeoutUs)
+{}
 
 SnmpBackend::~SnmpBackend()
 {
