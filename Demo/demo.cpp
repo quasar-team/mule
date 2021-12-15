@@ -12,12 +12,12 @@ int main()
     try
     {
 
-        std::string address = "asml1c-stf1";
+        std::string address = "asmemf-dro-02";
         std::string version = "2c";
         std::string community = "public";
 
         LOG(Log::INF) << "Opening connection";
-        Snmp::SnmpBackend snmpBackend(address, version, community, Snmp::Constants::SNMP_MAX_RETRIES, Snmp::Constants::SNMP_TIMEOUT);
+        Snmp::SnmpBackend snmpBackend(address, version, community);
 
         std::string atcaRootOid = "1.3.6.1.4.1.16394.2.1.1";
         std::string boardPresent = atcaRootOid+ ".32.1.2";
