@@ -166,7 +166,7 @@ snmp_session SnmpBackend::createSessionV3 ()
 		{
 			snmp_perror("mule");
 			snmp_log(LOG_ERR, "Error generating Ku from %s pass phrase. \n", type.c_str());
-			exit(1);
+			std::exit(EXIT_FAILURE);
 		}
 		LOG(Log::INF, LogComponentLevels::mule()) << "Generated Ku for type ["<<type<<"], key length ["<<*keyLength<<"]";
 	};
