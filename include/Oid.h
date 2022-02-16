@@ -40,7 +40,6 @@ class Oid
 {
 public:
 	explicit Oid( const std::string& oidOfInterest );
-	virtual ~Oid();
 
 private:
 

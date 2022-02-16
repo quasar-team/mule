@@ -46,10 +46,6 @@ Oid& Oid::operator()( const std::string& oidOfInterest )
 	return *this;
 }
 
-Oid::~Oid()
-{
-}
-
 void Oid::assign ( std::string oidOfInterest )
 {
 
