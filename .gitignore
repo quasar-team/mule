@@ -30,3 +30,7 @@
 *.exe
 *.out
 *.app
+
+# Other paths
+Demo/build/
+Demo/deploy/
