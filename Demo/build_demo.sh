@@ -1,5 +1,6 @@
-#!/bin/sh
+#!/bin/bash
 
+source setupEnvironment.sh
 
 rm -Rf build
 mkdir build
