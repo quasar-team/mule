@@ -296,7 +296,6 @@ PduPtr SnmpBackend::snmpGet( const std::string& oidOfInterest )
 
 	LOG(Log::TRC, LogComponentLevels::mule()) << "SNMP get OID:" << oidOfInterest << " on device with hostname: " << m_hostname;
 
-
 	netsnmp_pdu *pdu = snmp_pdu_create(SNMP_MSG_GET);
 
 	std::vector<oid> subIdentifierList = prepareOid( oidOfInterest );
