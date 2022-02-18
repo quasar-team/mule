@@ -274,15 +274,15 @@ std::vector<Oid> SnmpBackend::snmpDeviceWalk ( const std::string& seedOid )
 			LOG(Log::TRC, LogComponentLevels::mule()) << "Current OID: " << currentDeviceOid.getOidString();
 			LOG(Log::TRC, LogComponentLevels::mule()) << "Next OID: " << nextDeviceOid.getOidString();
 
-			// Stop walking due to level change 
-			if ( currentDeviceOid.getOidVector()[currentDeviceOid.getOidSize() - 2] != nextDeviceOid.getOidVector()[nextDeviceOid.getOidSize() - 2] ) 
+			// Stop walking due to level change
+			if ( currentDeviceOid.getOidVector()[currentDeviceOid.getOidSize() - 2] != nextDeviceOid.getOidVector()[nextDeviceOid.getOidSize() - 2] )
 			{
 			 	LOG(Log::INF, LogComponentLevels::mule()) << "SNMP walk reached its end";
 				break;
 			}
 
 			// Stop walking due size change
-			if ( currentDeviceOid.getOidSize() != nextDeviceOid.getOidSize() ) 
+			if ( currentDeviceOid.getOidSize() != nextDeviceOid.getOidSize() )
 			{
 			 	LOG(Log::INF, LogComponentLevels::mule()) << "SNMP walk reached its end";
 				break;
