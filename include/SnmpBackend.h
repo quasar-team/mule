@@ -98,8 +98,14 @@ public:
 				std::string authenticationPassPhrase,
 				int snmpMaxRetries,
 				int snmpTimeoutUs);
-				
+
 	~SnmpBackend();
+	
+	// CppCoreGuidelines C.21
+	SnmpBackend(const SnmpBackend&) = delete;
+    SnmpBackend& operator=(const SnmpBackend&) = delete;
+    SnmpBackend(SnmpBackend&&) = default;
+    SnmpBackend& operator=(SnmpBackend&&) = default;
 
 private:
 	snmp_session createSessionV2 ();
