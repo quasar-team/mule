@@ -41,6 +41,14 @@ namespace Snmp
 SnmpBackend::SnmpBackend(std::string hostname,
 				std::string snmpVersion,
 				std::string community,
+				int snmpMaxRetries,
+				int snmpTimeoutUs) :
+				SnmpBackend(hostname, snmpVersion, community, "", "", "", "", "", "", snmpMaxRetries, snmpTimeoutUs)
+{}
+
+SnmpBackend::SnmpBackend(std::string hostname,
+				std::string snmpVersion,
+				std::string community,
 				std::string username,
 				std::string securityLevel,
 				std::string authenticationProtocol,
