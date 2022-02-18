@@ -40,6 +40,7 @@ class Oid
 {
 public:
 	explicit Oid( const std::string& oidOfInterest );
+	virtual ~Oid() = default;
 
 private:
 
@@ -52,8 +53,8 @@ private:
 
 public:
 
-	constexpr std::string& getOidString() { return m_originalString; };
-	const std::vector<std::string> getOidVector() { return m_oidVector; };
+	const std::string& getOidString() const { return m_originalString; };
+	const std::vector<std::string>& getOidVector() const { return m_oidVector; };
 	void printOidFromVector();
 	uint32_t getOidSize() { return m_oidSize; };
 	Oid& operator()( const std::string& );
