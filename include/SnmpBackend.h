@@ -69,6 +69,12 @@ typedef std::unique_ptr<netsnmp_pdu, PduDeleter> PduPtr;
 class SnmpBackend {
 
 public:
+	SnmpBackend(std::string hostname,
+				std::string snmpVersion,
+				std::string community,
+				int snmpMaxRetries,
+				int snmpTimeoutUs);
+
 	// CppCoreGuidelines F.51
 	SnmpBackend(std::string hostname,
 				std::string snmpVersion = "2c",
