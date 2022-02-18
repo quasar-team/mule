@@ -1,13 +1,13 @@
-/* 
+/*
  * @author:     Paris Moschovakos <paris.moschovakos@cern.ch>
- * 
+ *
  * @copyright:  2020 CERN
- * 
+ *
  * @license:
  * LICENSE:
  * Copyright (c) 2020, CERN
  * All rights reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without modification,
  * are permitted provided that the following conditions are met:
  * 1. Redistributions of source code must retain the above copyright notice, this
@@ -25,7 +25,7 @@
  * ANY  THEORY  OF  LIABILITY,   WHETHER IN  CONTRACT, STRICT  LIABILITY,  OR  TORT
  * (INCLUDING  NEGLIGENCE OR OTHERWISE)  ARISING IN ANY WAY OUT OF  THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- * 
+ *
  */
 
 #pragma once
@@ -54,7 +54,7 @@ typedef std::variant<
 					// SMIv2 Counter32/Gauge32/TimeTicks/Unsigned32
 					uint32_t,
 					// mule bool
-					bool> 
+					bool>
 					snmpSetValue;
 
 struct PduDeleter
@@ -87,7 +87,7 @@ public:
 				std::string privacyPassPhrase = "",
 				int snmpMaxRetries = Snmp::Constants::SNMP_MAX_RETRIES,
 				int snmpTimeoutUs = Snmp::Constants::SNMP_TIMEOUT);
-	
+
 	// TODO: Remove deprecated constructor only used in the PDU server
 	SnmpBackend(std::string hostname,
 				std::string snmpVersion,
@@ -100,7 +100,7 @@ public:
 				int snmpTimeoutUs);
 
 	~SnmpBackend();
-	
+
 	// CppCoreGuidelines C.21
 	SnmpBackend(const SnmpBackend&) = delete;
     SnmpBackend& operator=(const SnmpBackend&) = delete;
@@ -145,7 +145,7 @@ public:
 	std::pair<SnmpStatus, std::string> snmpGetString( const std::string& oidOfInterest );
 	std::pair<SnmpStatus, std::string> snmpGetTime( const std::string& oidOfInterest );
 	std::pair<SnmpStatus, std::vector<uint8_t>> snmpGetHex( const std::string& oidOfInterest );
-	
+
 	/**
 	 * Gets a float value where the underlying SNMP data format is string. So, reads string value
 	 * from remote resource, then parses string to get float value.
