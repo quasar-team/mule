@@ -38,23 +38,23 @@ using Mule::LogComponentLevels;
 namespace Snmp
 {
 
-SnmpBackend::SnmpBackend(std::string hostname,
-				std::string snmpVersion,
-				std::string community,
+SnmpBackend::SnmpBackend(const std::string& hostname,
+				const std::string& snmpVersion,
+				const std::string& community,
 				int snmpMaxRetries,
 				int snmpTimeoutUs) :
 				SnmpBackend(hostname, snmpVersion, community, "", "", "", "", "", "", snmpMaxRetries, snmpTimeoutUs)
 {}
 
-SnmpBackend::SnmpBackend(std::string hostname,
-				std::string snmpVersion,
-				std::string community,
-				std::string username,
-				std::string securityLevel,
-				std::string authenticationProtocol,
-				std::string authenticationPassPhrase,
-				std::string privacyProtocol,
-				std::string privacyPassPhrase,
+SnmpBackend::SnmpBackend(const std::string& hostname,
+				const std::string& snmpVersion,
+				const std::string& community,
+				const std::string& username,
+				const std::string& securityLevel,
+				const std::string& authenticationProtocol,
+				const std::string& authenticationPassPhrase,
+				const std::string& privacyProtocol,
+				const std::string& privacyPassPhrase,
 				int snmpMaxRetries,
 				int snmpTimeoutUs) :
 				m_hostname(hostname),
@@ -94,13 +94,13 @@ SnmpBackend::SnmpBackend(std::string hostname,
 
 };
 
-SnmpBackend::SnmpBackend(std::string hostname,
-				std::string snmpVersion,
-				std::string community,
-				std::string username,
-				std::string securityLevel,
-				std::string authenticationProtocol,
-				std::string authenticationPassPhrase,
+SnmpBackend::SnmpBackend(const std::string& hostname,
+				const std::string& snmpVersion,
+				const std::string& community,
+				const std::string& username,
+				const std::string& securityLevel,
+				const std::string& authenticationProtocol,
+				const std::string& authenticationPassPhrase,
 				int snmpMaxRetries,
 				int snmpTimeoutUs) :
 				SnmpBackend(hostname, snmpVersion, community, username, securityLevel, authenticationProtocol, m_authenticationPassPhrase, "", "", snmpMaxRetries, snmpTimeoutUs)
