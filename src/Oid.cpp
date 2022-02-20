@@ -1,13 +1,13 @@
-/* 
+/*
  * @author:     Paris Moschovakos <paris.moschovakos@cern.ch>
- * 
+ *
  * @copyright:  2020 CERN
- * 
+ *
  * @license:
  * LICENSE:
  * Copyright (c) 2020, CERN
  * All rights reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without modification,
  * are permitted provided that the following conditions are met:
  * 1. Redistributions of source code must retain the above copyright notice, this
@@ -25,12 +25,13 @@
  * ANY  THEORY  OF  LIABILITY,   WHETHER IN  CONTRACT, STRICT  LIABILITY,  OR  TORT
  * (INCLUDING  NEGLIGENCE OR OTHERWISE)  ARISING IN ANY WAY OUT OF  THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- * 
+ *
  */
 
 #include <Oid.h>
 #include <vector>
 #include <MuleLogComponents.h>
+#include <numeric>
 
 using namespace Snmp;
 using Mule::LogComponentLevels;
@@ -68,13 +69,14 @@ void Oid::assign ( std::string oidOfInterest )
 
 void Oid::printOidFromVector()
 {
-	std::string oid;
 
-	for (const auto oidPart: m_oidVector) 
-	{
-        oid += oidPart + '.';
-    }
-	oid.pop_back();
+	std::string oid = std::accumulate(std::begin(m_oidVector), std::end(m_oidVector), std::string(),
+                   						[](std::string lhs, const std::string &rhs)
+										{
+											return lhs.empty() ? rhs : lhs + '.' + rhs;
+										});
+
 	LOG(Log::INF, LogComponentLevels::mule()) << oid;
+
 }
 
