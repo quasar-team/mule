@@ -69,33 +69,33 @@ typedef std::unique_ptr<netsnmp_pdu, PduDeleter> PduPtr;
 class SnmpBackend {
 
 public:
-	SnmpBackend(std::string hostname,
-				std::string snmpVersion,
-				std::string community,
+	SnmpBackend(const std::string& hostname,
+				const std::string& snmpVersion,
+				const std::string& community,
 				int snmpMaxRetries,
 				int snmpTimeoutUs);
 
 	// CppCoreGuidelines F.51
-	SnmpBackend(std::string hostname,
-				std::string snmpVersion = "2c",
-				std::string community = "public",
-				std::string username = "",
-				std::string securityLevel = "",
-				std::string authenticationProtocol = "",
-				std::string authenticationPassPhrase = "",
-				std::string privacyProtocol = "",
-				std::string privacyPassPhrase = "",
+	explicit SnmpBackend(const std::string& hostname,
+				const std::string& snmpVersion = "2c",
+				const std::string& community = "public",
+				const std::string& username = "",
+				const std::string& securityLevel = "",
+				const std::string& authenticationProtocol = "",
+				const std::string& authenticationPassPhrase = "",
+				const std::string& privacyProtocol = "",
+				const std::string& privacyPassPhrase = "",
 				int snmpMaxRetries = Snmp::Constants::SNMP_MAX_RETRIES,
 				int snmpTimeoutUs = Snmp::Constants::SNMP_TIMEOUT);
 
 	// TODO: Remove deprecated constructor only used in the PDU server
-	SnmpBackend(std::string hostname,
-				std::string snmpVersion,
-				std::string community,
-				std::string username,
-				std::string securityLevel,
-				std::string authenticationProtocol,
-				std::string authenticationPassPhrase,
+	SnmpBackend(const std::string& hostname,
+				const std::string& snmpVersion,
+				const std::string& community,
+				const std::string& username,
+				const std::string& securityLevel,
+				const std::string& authenticationProtocol,
+				const std::string& authenticationPassPhrase,
 				int snmpMaxRetries,
 				int snmpTimeoutUs);
 
