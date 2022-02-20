@@ -140,7 +140,7 @@ std::pair<SnmpStatus, std::string> SnmpBackend::snmpGetTime( const std::string& 
 {
 
 	netsnmp_variable_list *vars;
-	time_t value(0);
+	time_t value{0};
 	PduPtr response = snmpGet ( oidOfInterest );
 
 	if (response)
