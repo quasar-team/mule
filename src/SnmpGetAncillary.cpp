@@ -140,7 +140,7 @@ std::pair<SnmpStatus, std::string> SnmpBackend::snmpGetTime( const std::string& 
 {
 
 	netsnmp_variable_list *vars;
-	time_t value{0};
+	time_t value{};
 	PduPtr response = snmpGet ( oidOfInterest );
 
 	if (response)
@@ -153,7 +153,10 @@ std::pair<SnmpStatus, std::string> SnmpBackend::snmpGetTime( const std::string& 
 				{
 					value = *vars->val.integer;
 					SnmpStatus status = Snmp_Good;
-					std::string timeString(asctime(localtime (&value)));
+					
+					char buf[64];
+					strftime(buf, sizeof buf, "%a %b %e %H:%M:%S %Y\n", localtime(&value));
+					std::string timeString(buf);
 
 					if (value == -1 )
 						status = Snmp_BadDataUnavailable;
@@ -218,7 +221,7 @@ std::pair<SnmpStatus, float> SnmpBackend::snmpGetFloatFromString( const std::str
 {
 
 	netsnmp_variable_list *vars;
-	float value = 0.0;
+	float value{0.0};
 	PduPtr response = snmpGet ( oidOfInterest );
 
 	if (response)
