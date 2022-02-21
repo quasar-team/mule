@@ -32,6 +32,7 @@
 #include <vector>
 #include <MuleLogComponents.h>
 #include <numeric>
+#include <MuleCommon.h>
 
 using namespace Snmp;
 using Mule::LogComponentLevels;
@@ -69,14 +70,8 @@ void Oid::assign ( std::string oidOfInterest )
 
 void Oid::printOidFromVector()
 {
-
-	std::string oid = std::accumulate(std::begin(m_oidVector), std::end(m_oidVector), std::string(),
-                   						[](std::string lhs, const std::string &rhs)
-										{
-											return lhs.empty() ? rhs : lhs + '.' + rhs;
-										});
-
-	LOG(Log::INF, LogComponentLevels::mule()) << oid;
+	
+	LOG(Log::INF, LogComponentLevels::mule()) << mule::printContainer(m_oidVector, ".");
 
 }
 

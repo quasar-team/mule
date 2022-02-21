@@ -30,7 +30,7 @@ int main()
         }
         
         LOG(Log::INF) << "Start walking board presence";
-        auto oids = snmpBackend.snmpDeviceWalk(boardPresent + ".1");
+        auto oids = snmpBackend.snmpDeviceWalk(boardPresent + ".0");
 
         LOG(Log::INF) << "Printing walked OIDs";
         for (auto oid: oids)
