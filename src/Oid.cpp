@@ -71,7 +71,7 @@ void Oid::assign ( std::string oidOfInterest )
 void Oid::printOidFromVector()
 {
 	
-	LOG(Log::INF, LogComponentLevels::mule()) << mule::printContainer(m_oidVector, ".");
+	LOG(Log::INF, LogComponentLevels::mule()) << mule::containerToString(m_oidVector, ".");
 
 }
 
