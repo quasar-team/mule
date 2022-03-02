@@ -13,7 +13,7 @@ In order to deploy it please follow the steps described below:
 set(CUSTOM_SERVER_MODULES mule)
 ```
 
-* We will also need to declare where the link libraries for Net-SNMP are located if they are not already accessible. To do that we need to 
+* We will also need to declare where the link libraries for Net-SNMP are located if they are not already accessible. To do that we need to
 
 ```
 set(SERVER_LINK_LIBRARIES -lnetsnmp )
