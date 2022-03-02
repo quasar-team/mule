@@ -70,10 +70,10 @@ class SnmpBackend {
 
 public:
 	SnmpBackend(const std::string& hostname,
-				const std::string& snmpVersion,
-				const std::string& community,
-				int snmpMaxRetries,
-				int snmpTimeoutUs);
+				const std::string& snmpVersion = "2c",
+				const std::string& community = "public",
+				int snmpMaxRetries = Snmp::Constants::SNMP_MAX_RETRIES,
+				int snmpTimeoutUs = Snmp::Constants::SNMP_TIMEOUT);
 
 	// CppCoreGuidelines F.51
 	explicit SnmpBackend(const std::string& hostname,
@@ -87,17 +87,6 @@ public:
 				const std::string& privacyPassPhrase = "",
 				int snmpMaxRetries = Snmp::Constants::SNMP_MAX_RETRIES,
 				int snmpTimeoutUs = Snmp::Constants::SNMP_TIMEOUT);
-
-	// TODO: Remove deprecated constructor only used in the PDU server
-	SnmpBackend(const std::string& hostname,
-				const std::string& snmpVersion,
-				const std::string& community,
-				const std::string& username,
-				const std::string& securityLevel,
-				const std::string& authenticationProtocol,
-				const std::string& authenticationPassPhrase,
-				int snmpMaxRetries,
-				int snmpTimeoutUs);
 
 	~SnmpBackend();
 

@@ -94,18 +94,6 @@ SnmpBackend::SnmpBackend(const std::string& hostname,
 
 };
 
-SnmpBackend::SnmpBackend(const std::string& hostname,
-				const std::string& snmpVersion,
-				const std::string& community,
-				const std::string& username,
-				const std::string& securityLevel,
-				const std::string& authenticationProtocol,
-				const std::string& authenticationPassPhrase,
-				int snmpMaxRetries,
-				int snmpTimeoutUs) :
-				SnmpBackend(hostname, snmpVersion, community, username, securityLevel, authenticationProtocol, m_authenticationPassPhrase, "", "", snmpMaxRetries, snmpTimeoutUs)
-{}
-
 SnmpBackend::~SnmpBackend()
 {
 
