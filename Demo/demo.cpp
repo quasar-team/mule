@@ -17,7 +17,7 @@ int main()
         std::string community = "public";
 
         LOG(Log::INF) << "Opening connection";
-        Snmp::SnmpBackend snmpBackend(address, version, community);
+        Snmp::SnmpBackend snmpBackend(address, version, community, Snmp::Constants::SNMP_MAX_RETRIES);
 
         std::string atcaRootOid = "1.3.6.1.4.1.16394.2.1.1";
         std::string boardPresent = atcaRootOid+ ".32.1.2";
