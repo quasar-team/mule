@@ -88,6 +88,20 @@ public:
 				int snmpMaxRetries = Snmp::Constants::SNMP_MAX_RETRIES,
 				int snmpTimeoutUs = Snmp::Constants::SNMP_TIMEOUT);
 
+	explicit SnmpBackend(const std::string& hostname,
+				const std::string& snmpVersion = "2c",
+				const std::string& community = "public",
+				const std::string& username = "",
+				const std::string& securityLevel = "",
+				const std::string& authenticationProtocol = "",
+				const std::string& authenticationPassPhrase = "",
+				const std::string& privacyProtocol = "",
+				const std::string& privacyPassPhrase = "",
+				int snmpMaxRetries = Snmp::Constants::SNMP_MAX_RETRIES,
+				int snmpTimeoutUs = Snmp::Constants::SNMP_TIMEOUT,
+				std::uint16_t trapReceiverUdpPort = 0, // 0 means no port
+				Trap::TrapHandler trapHandler = nullptr);
+
 	~SnmpBackend();
 
 	// CppCoreGuidelines C.21
@@ -97,6 +111,7 @@ public:
     SnmpBackend& operator=(SnmpBackend&&) = default;
 
 private:
+	netsnmp_transport* openTrapReceiverUdpPort(const std::uint16_t trapReceiverUdpPort);
 	snmp_session createSessionV2 ();
 	snmp_session createSessionV3 ();
 	void openSession ( snmp_session snmpSession );
@@ -115,6 +130,9 @@ private:
 	const int m_snmpMaxRetries;
 	const int m_snmpTimeoutUs;
 
+	std::uint16_t m_trapReceiverUdpPort;
+	Trap::TrapHandler m_trapHandler;
+
 	void * m_sessp;
 	snmp_session m_snmpSession;
 	netsnmp_session * m_snmpSessionHandle;
@@ -125,7 +143,8 @@ private:
 	std::pair<oid*, size_t> securityProtocolToOidDetails( const std::string & protocol );
 	std::string oidToString(const oid * objid, size_t objidlen, const netsnmp_variable_list * variable);
 	std::pair<SnmpStatus, unsigned char > translateIntToBoolean ( int32_t rawValue );
-
+	// static int internalTrapCallback(int i, netsnmp_session *s, int j, netsnmp_pdu *p, void *x);
+	void onTrapReceived(const std::vector<Snmp::PduPtr>& values);
 	std::mutex m_mutex;
 
 public:
@@ -157,6 +176,7 @@ public:
 	netsnmp_pdu * snmpGetNext( const std::string& oidOfInterest );
 	SnmpStatus snmpSet( const std::string& oidOfInterest, snmpSetValue & value );
 	PduPtr snmpGet( const std::string& oidOfInterest );
+	bool snmpReadTrap( const std::chrono::milliseconds& selectTimeout ); // blocks! 
 
 	std::string getHostName() { return m_hostname; };
 

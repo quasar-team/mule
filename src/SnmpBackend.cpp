@@ -35,41 +35,65 @@
 
 using Mule::LogComponentLevels;
 
+int internalTrapCallback(int i, netsnmp_session *s, int j, netsnmp_pdu *p, void *x)
+{
+    LOG(Log::INF) << __FUNCTION__ << " called with i ["<<i<<"] s ["<<std::hex<<s<<"] j ["<<j<<"] p ["<<std::hex<<p<<"] x ["<<std::hex<<x<<"]";
+	//reinterpret_cast<SnmpBackend*>(x)->onTrapReceived(std::vector<PduPtr>());
+    return 0;
+}
+
 namespace Snmp
 {
 
 SnmpBackend::SnmpBackend(const std::string& hostname,
-				const std::string& snmpVersion,
-				const std::string& community,
-				int snmpMaxRetries,
-				int snmpTimeoutUs) :
-				SnmpBackend(hostname, snmpVersion, community, "", "", "", "", "", "", snmpMaxRetries, snmpTimeoutUs)
+	const std::string& snmpVersion,
+	const std::string& community,
+	int snmpMaxRetries,
+	int snmpTimeoutUs) :
+	SnmpBackend(hostname, snmpVersion, community, "", "", "", "", "", "", snmpMaxRetries, snmpTimeoutUs, 0, nullptr)
 {}
 
 SnmpBackend::SnmpBackend(const std::string& hostname,
-				const std::string& snmpVersion,
-				const std::string& community,
-				const std::string& username,
-				const std::string& securityLevel,
-				const std::string& authenticationProtocol,
-				const std::string& authenticationPassPhrase,
-				const std::string& privacyProtocol,
-				const std::string& privacyPassPhrase,
-				int snmpMaxRetries,
-				int snmpTimeoutUs) :
-				m_hostname(hostname),
-				m_snmpVersion(snmpVersion),
-				m_community(community),
-				m_username(username),
-				m_securityLevel(securityLevel),
-				m_authenticationProtocol(authenticationProtocol),
-				m_authenticationPassPhrase(authenticationPassPhrase),
-				m_privacyProtocol(privacyProtocol),
-				m_privacyPassPhrase(privacyPassPhrase),
-				m_snmpMaxRetries(snmpMaxRetries),
-				m_snmpTimeoutUs(snmpTimeoutUs)
-{
+	const std::string& snmpVersion,
+	const std::string& community,
+	const std::string& username,
+	const std::string& securityLevel,
+	const std::string& authenticationProtocol,
+	const std::string& authenticationPassPhrase,
+	const std::string& privacyProtocol,
+	const std::string& privacyPassPhrase,
+	int snmpMaxRetries,
+	int snmpTimeoutUs) :
+	SnmpBackend(hostname, snmpVersion, community, "", "", "", "", "", "", snmpMaxRetries, snmpTimeoutUs, 0, nullptr)
+{}
 
+SnmpBackend::SnmpBackend(const std::string& hostname,
+	const std::string& snmpVersion,
+	const std::string& community,
+	const std::string& username,
+	const std::string& securityLevel,
+	const std::string& authenticationProtocol,
+	const std::string& authenticationPassPhrase,
+	const std::string& privacyProtocol,
+	const std::string& privacyPassPhrase,
+	int snmpMaxRetries,
+	int snmpTimeoutUs,
+	std::uint16_t trapReceiverUdpPort,
+	Trap::TrapHandler trapHandler):
+		m_hostname(hostname),
+		m_snmpVersion(snmpVersion),
+		m_community(community),
+		m_username(username),
+		m_securityLevel(securityLevel),
+		m_authenticationProtocol(authenticationProtocol),
+		m_authenticationPassPhrase(authenticationPassPhrase),
+		m_privacyProtocol(privacyProtocol),
+		m_privacyPassPhrase(privacyPassPhrase),
+		m_snmpMaxRetries(snmpMaxRetries),
+		m_snmpTimeoutUs(snmpTimeoutUs),
+		m_trapReceiverUdpPort(trapReceiverUdpPort),
+		m_trapHandler(trapHandler)
+{
 	try
 	{
 		const auto envMIBS = getenv("MIBS");
@@ -92,7 +116,7 @@ SnmpBackend::SnmpBackend(const std::string& hostname,
 		throw;
 	}
 
-};
+}
 
 SnmpBackend::~SnmpBackend()
 {
@@ -101,6 +125,11 @@ SnmpBackend::~SnmpBackend()
 	closeSession();
 
 };
+
+void SnmpBackend::onTrapReceived(const std::vector<Snmp::PduPtr>& values)
+{
+	LOG(Log::INF) << __FUNCTION__ << " called with ["<<values.size()<<"] values";
+}
 
 snmp_session SnmpBackend::createSessionV2 ()
 {
@@ -200,6 +229,24 @@ snmp_session SnmpBackend::createSessionV3 ()
 
 }
 
+netsnmp_transport* SnmpBackend::openTrapReceiverUdpPort(const std::uint16_t trapReceiverUdpPort)
+{
+	std::string appName("mule");
+    std::string portStr = std::to_string(trapReceiverUdpPort);
+    netsnmp_transport *transport = netsnmp_transport_open_server(appName.c_str(), portStr.c_str());
+    
+	if (transport == nullptr)
+    {
+		std::ostringstream err;
+        err << __FUNCTION__ << " failed to open trap receiver UDP port ["<<trapReceiverUdpPort<<"] net-snmp failure info [no: "<<errno<<", str: "<<strerror(errno)<<"]";
+		LOG(Log::ERR, LogComponentLevels::mule()) << err.str() << ". Throwing exception...";
+        snmp_throw_runtime_error_with_origin(err.str());
+    }
+
+	LOG(Log::INF, LogComponentLevels::mule()) << __FUNCTION__ << " opened trap receiver UDP port ["<<trapReceiverUdpPort<<"], returning transport ["<<std::hex<<transport<<"]";
+	return transport;
+}
+
 void SnmpBackend::openSession ( snmp_session snmpSession )
 {
 
@@ -207,7 +254,20 @@ void SnmpBackend::openSession ( snmp_session snmpSession )
 
 	try
 	{
-		m_sessp = snmp_sess_open(&snmpSession);
+		if (m_trapReceiverUdpPort && m_trapHandler)
+		{
+			// configure trap stuff
+			m_snmpSession.callback = static_cast<netsnmp_callback>(internalTrapCallback);
+			m_snmpSession.callback_magic = this;
+			m_snmpSession.isAuthoritative = SNMP_SESS_UNKNOWNAUTH;
+			netsnmp_transport* transport = openTrapReceiverUdpPort(m_trapReceiverUdpPort); // throws on fail
+			m_sessp = snmp_sess_add(&snmpSession, transport, nullptr, nullptr);
+		}
+		else
+		{
+			m_sessp = snmp_sess_open(&snmpSession);
+		}
+
 		m_snmpSessionHandle = snmp_sess_session( m_sessp );
 
 		if ( !m_snmpSessionHandle ) {
@@ -431,6 +491,53 @@ netsnmp_pdu * SnmpBackend::snmpGetNext( const std::string& oidOfInterest )
 	}
 
 	return response;
+}
+
+bool SnmpBackend::snmpReadTrap( const std::chrono::milliseconds& selectTimeout )
+{
+    fd_set readfds;
+    FD_ZERO(&readfds);
+    
+    struct timeval timeout;
+    timerclear(&timeout);
+    timeout.tv_usec = std::chrono::duration_cast<std::chrono::microseconds>(selectTimeout).count();
+
+    int numfds = 0;
+    int block = 0;
+
+    LOG(Log::INF) << __FUNCTION__ << " calling [snmp_select_info]...";
+    const int openSocketCount = snmp_sess_select_info(m_sessp, &numfds, &readfds, &timeout, &block);
+    LOG(Log::INF) << __FUNCTION__ << " called [snmp_select_info], returned openSocketCount ["<<openSocketCount<<"]";
+
+    LOG(Log::INF) << __FUNCTION__ << " calling [select]...";
+    int readyDescriptorCount = select(numfds, &readfds, nullptr, nullptr, &timeout);
+    LOG(Log::INF) << __FUNCTION__ << " called [select], returned readyDescriptorCount ["<<readyDescriptorCount<<"]";
+    if (readyDescriptorCount > 0) 
+    {
+        LOG(Log::INF) << __FUNCTION__ << " calling [snmp_read]...";
+        snmp_sess_read(m_sessp, &readfds);		
+        LOG(Log::INF) << __FUNCTION__ << " called [snmp_read]";
+		return true;
+    }
+    else 
+    {
+        switch (readyDescriptorCount) 
+		{
+        case 0:
+            LOG(Log::ERR) << __FUNCTION__ << " calling [snmp_timeout]...";
+            snmp_timeout();
+            LOG(Log::ERR) << __FUNCTION__ << " called [snmp_timeout]";
+            break;
+        case -1:
+            LOG(Log::ERR) << __FUNCTION__ << " calling [snmp_log_perror]...";
+            snmp_log_perror("select");
+            LOG(Log::ERR) << __FUNCTION__ << " called [snmp_log_perror]";
+            break;
+        default:
+            LOG(Log::ERR) << __FUNCTION__ << " unknown error ["<<readyDescriptorCount<<"]";
+        }
+	}    
+	return false;
 }
 
 std::vector<oid> SnmpBackend::prepareOid ( const std::string& oidOfInterest )

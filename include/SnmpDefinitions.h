@@ -31,6 +31,7 @@
 #pragma once
 
 #include <string>
+#include <functional>
 
 namespace Snmp
 {
@@ -79,6 +80,12 @@ namespace Snmp
         NO_SUCH_INSTANCE = 1
     };
 
+
   }
+
+  namespace Trap
+  {
+    typedef std::function<void(void)> TrapHandler;
+  } // Trap
 
 }
