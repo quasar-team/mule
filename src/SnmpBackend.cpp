@@ -525,7 +525,7 @@ bool SnmpBackend::snmpReadTrap( const std::chrono::milliseconds& selectTimeout )
 		{
         case 0:
             LOG(Log::ERR) << __FUNCTION__ << " calling [snmp_timeout]...";
-            snmp_timeout();
+            snmp_sess_timeout(m_sessp);
             LOG(Log::ERR) << __FUNCTION__ << " called [snmp_timeout]";
             break;
         case -1:
