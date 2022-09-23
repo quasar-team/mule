@@ -143,7 +143,7 @@ private:
 	std::pair<oid*, size_t> securityProtocolToOidDetails( const std::string & protocol );
 	std::string oidToString(const oid * objid, size_t objidlen, const netsnmp_variable_list * variable);
 	std::pair<SnmpStatus, unsigned char > translateIntToBoolean ( int32_t rawValue );
-	// static int internalTrapCallback(int i, netsnmp_session *s, int j, netsnmp_pdu *p, void *x);
+	static int internalTrapCallback(int i, netsnmp_session *s, int j, netsnmp_pdu *p, void *x);
 	void onTrapReceived(const std::vector<Snmp::PduPtr>& values);
 	std::mutex m_mutex;
 

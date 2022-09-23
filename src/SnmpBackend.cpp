@@ -35,12 +35,6 @@
 
 using Mule::LogComponentLevels;
 
-int internalTrapCallback(int i, netsnmp_session *s, int j, netsnmp_pdu *p, void *x)
-{
-    LOG(Log::INF) << __FUNCTION__ << " called with i ["<<i<<"] s ["<<std::hex<<s<<"] j ["<<j<<"] p ["<<std::hex<<p<<"] x ["<<std::hex<<x<<"]";
-	//reinterpret_cast<SnmpBackend*>(x)->onTrapReceived(std::vector<PduPtr>());
-    return 0;
-}
 
 namespace Snmp
 {
@@ -125,6 +119,14 @@ SnmpBackend::~SnmpBackend()
 	closeSession();
 
 };
+
+int SnmpBackend::internalTrapCallback(int i, netsnmp_session *s, int j, netsnmp_pdu *p, void *x)
+{
+    LOG(Log::INF) << __FUNCTION__ << " called with i ["<<i<<"] s ["<<std::hex<<s<<"] j ["<<j<<"] p ["<<std::hex<<p<<"] x ["<<std::hex<<x<<"]";
+	PduPtr pdu(p);
+	reinterpret_cast<SnmpBackend*>(x)->onTrapReceived(std::vector<PduPtr>());
+    return 0;
+}
 
 void SnmpBackend::onTrapReceived(const std::vector<Snmp::PduPtr>& values)
 {
@@ -254,12 +256,9 @@ void SnmpBackend::openSession ( snmp_session snmpSession )
 
 	try
 	{
-		if (m_trapReceiverUdpPort && m_trapHandler)
+		if (m_trapReceiverUdpPort)
 		{
 			// configure trap stuff
-			m_snmpSession.callback = static_cast<netsnmp_callback>(internalTrapCallback);
-			m_snmpSession.callback_magic = this;
-			m_snmpSession.isAuthoritative = SNMP_SESS_UNKNOWNAUTH;
 			netsnmp_transport* transport = openTrapReceiverUdpPort(m_trapReceiverUdpPort); // throws on fail
 			m_sessp = snmp_sess_add(&snmpSession, transport, nullptr, nullptr);
 		}
@@ -269,11 +268,18 @@ void SnmpBackend::openSession ( snmp_session snmpSession )
 		}
 
 		m_snmpSessionHandle = snmp_sess_session( m_sessp );
-
 		if ( !m_snmpSessionHandle ) {
 			snmp_perror("ack");
 			snmp_throw_runtime_error_with_origin("When trying to open SNMP session to " + getHostName());
 		}
+
+		if(m_trapHandler)
+		{
+			m_snmpSessionHandle->isAuthoritative = SNMP_SESS_UNKNOWNAUTH;
+			m_snmpSessionHandle->callback_magic = this;
+			m_snmpSessionHandle->callback = static_cast<netsnmp_callback>(SnmpBackend::internalTrapCallback);
+		}
+
 	}
 	catch (const std::exception& e)
 	{
@@ -509,7 +515,7 @@ bool SnmpBackend::snmpReadTrap( const std::chrono::milliseconds& selectTimeout )
     const int openSocketCount = snmp_sess_select_info(m_sessp, &numfds, &readfds, &timeout, &block);
     LOG(Log::INF) << __FUNCTION__ << " called [snmp_select_info], returned openSocketCount ["<<openSocketCount<<"]";
 
-    LOG(Log::INF) << __FUNCTION__ << " calling [select]...";
+    LOG(Log::INF) << __FUNCTION__ << " calling [select], timeout [usec: "<<timeout.tv_usec<<"]...";
     int readyDescriptorCount = select(numfds, &readfds, nullptr, nullptr, &timeout);
     LOG(Log::INF) << __FUNCTION__ << " called [select], returned readyDescriptorCount ["<<readyDescriptorCount<<"]";
     if (readyDescriptorCount > 0) 
