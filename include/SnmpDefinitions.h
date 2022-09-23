@@ -31,10 +31,24 @@
 #pragma once
 
 #include <string>
+#include <variant>
+#include <tuple>
 #include <functional>
 
 namespace Snmp
 {
+
+  typedef std::variant<
+    // ASN.1 INTEGER, SMIv2 Integer32
+    int32_t,
+    // ASN.1 OCTET STRING
+    std::string,
+    // SMIv2 Counter32/Gauge32/TimeTicks/Unsigned32
+    uint32_t,
+    // mule bool
+    bool>
+  SnmpValue;
+  typedef SnmpValue snmpSetValue; // API backwards compat; SnmpValue new name for snmpSetValue
 
 	namespace Constants
 	{
@@ -79,13 +93,11 @@ namespace Snmp
         NO_SUCH_OBJECT = 0,
         NO_SUCH_INSTANCE = 1
     };
-
-
-  }
+  } // namespace Constants
 
   namespace Trap
   {
-    typedef std::function<void(void)> TrapHandler;
-  } // Trap
+    typedef std::function<void(const std::string&, const std::string&, const Snmp::SnmpValue&)> TrapHandler; // src, oid, val
+  } // namespace Trap
 
-}
+} // namespace Snmp

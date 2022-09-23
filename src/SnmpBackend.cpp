@@ -120,19 +120,6 @@ SnmpBackend::~SnmpBackend()
 
 };
 
-int SnmpBackend::internalTrapCallback(int i, netsnmp_session *s, int j, netsnmp_pdu *p, void *x)
-{
-    LOG(Log::INF) << __FUNCTION__ << " called with i ["<<i<<"] s ["<<std::hex<<s<<"] j ["<<j<<"] p ["<<std::hex<<p<<"] x ["<<std::hex<<x<<"]";
-	PduPtr pdu(p);
-	reinterpret_cast<SnmpBackend*>(x)->onTrapReceived(std::vector<PduPtr>());
-    return 0;
-}
-
-void SnmpBackend::onTrapReceived(const std::vector<Snmp::PduPtr>& values)
-{
-	LOG(Log::INF) << __FUNCTION__ << " called with ["<<values.size()<<"] values";
-}
-
 snmp_session SnmpBackend::createSessionV2 ()
 {
 
@@ -249,6 +236,13 @@ netsnmp_transport* SnmpBackend::openTrapReceiverUdpPort(const std::uint16_t trap
 	return transport;
 }
 
+int SnmpBackend::globalTrapCallback(int i, netsnmp_session *s, int j, netsnmp_pdu *p, void *x)
+{
+    LOG(Log::INF) << __FUNCTION__ << " called with i ["<<i<<"] s ["<<std::hex<<s<<"] j ["<<j<<"] p ["<<std::hex<<p<<"] x ["<<std::hex<<x<<"]";
+	reinterpret_cast<SnmpBackend*>(x)->onTrapReceived(s->peername, p);
+    return 0;
+}
+
 void SnmpBackend::openSession ( snmp_session snmpSession )
 {
 
@@ -260,6 +254,7 @@ void SnmpBackend::openSession ( snmp_session snmpSession )
 		{
 			// configure trap stuff
 			netsnmp_transport* transport = openTrapReceiverUdpPort(m_trapReceiverUdpPort); // throws on fail
+			create_user_from_session(&snmpSession);
 			m_sessp = snmp_sess_add(&snmpSession, transport, nullptr, nullptr);
 		}
 		else
@@ -277,7 +272,7 @@ void SnmpBackend::openSession ( snmp_session snmpSession )
 		{
 			m_snmpSessionHandle->isAuthoritative = SNMP_SESS_UNKNOWNAUTH;
 			m_snmpSessionHandle->callback_magic = this;
-			m_snmpSessionHandle->callback = static_cast<netsnmp_callback>(SnmpBackend::internalTrapCallback);
+			m_snmpSessionHandle->callback = static_cast<netsnmp_callback>(SnmpBackend::globalTrapCallback);
 		}
 
 	}
@@ -497,6 +492,43 @@ netsnmp_pdu * SnmpBackend::snmpGetNext( const std::string& oidOfInterest )
 	}
 
 	return response;
+}
+
+bool SnmpBackend::toSnmpValue(const netsnmp_vardata& rawSnmpValue, const u_char& rawSnmpType, SnmpValue& value) 
+{
+	switch(rawSnmpType)
+	{
+		case ASN_BOOLEAN:
+			value = static_cast<bool>(*rawSnmpValue.integer > 0);
+			return true;
+		case ASN_INTEGER:
+			value = static_cast<int32_t>(*rawSnmpValue.integer);
+			return true;
+		case ASN_OCTET_STR:
+			value = std::string(reinterpret_cast<const char*>(rawSnmpValue.string));
+			return true;
+		default:
+			return false; // don't handle this ASN type :(
+	}
+}
+
+void SnmpBackend::onTrapReceived(const std::string& src, netsnmp_pdu *pdu)
+{
+	LOG(Log::INF) << __FUNCTION__ << " called, src ["<<src<<"] pdu ["<<(pdu != nullptr ? "non-empty" : "empty!")<<"]";
+	if(!pdu) return; // nothing to do, seems bit weird though.
+
+	for(netsnmp_variable_list *var = pdu->variables; var != nullptr; var = var->next_variable)
+	{
+		char oidStr[1024]; // 1024 ==> total guess! No idea how long it needs to be
+		memset(oidStr, 0, 1024);
+		snprint_objid(oidStr, 1024, var->name_loc, var->name_length);
+
+		SnmpValue snmpValue;
+		if(toSnmpValue(var->val, var->type, snmpValue))
+		{
+			m_trapHandler(src, oidStr, snmpValue);
+		}
+	} 
 }
 
 bool SnmpBackend::snmpReadTrap( const std::chrono::milliseconds& selectTimeout )

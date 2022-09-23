@@ -32,7 +32,6 @@
 
 #include <string>
 #include <vector>
-#include <variant>
 #include <mutex>
 #include <memory>
 #include <functional>
@@ -46,16 +45,7 @@
 
 namespace Snmp{
 
-typedef std::variant<
-					// ASN.1 INTEGER, SMIv2 Integer32
-					int32_t,
-					// ASN.1 OCTET STRING
-					std::string,
-					// SMIv2 Counter32/Gauge32/TimeTicks/Unsigned32
-					uint32_t,
-					// mule bool
-					bool>
-					snmpSetValue;
+
 
 struct PduDeleter
 {
@@ -143,8 +133,9 @@ private:
 	std::pair<oid*, size_t> securityProtocolToOidDetails( const std::string & protocol );
 	std::string oidToString(const oid * objid, size_t objidlen, const netsnmp_variable_list * variable);
 	std::pair<SnmpStatus, unsigned char > translateIntToBoolean ( int32_t rawValue );
-	static int internalTrapCallback(int i, netsnmp_session *s, int j, netsnmp_pdu *p, void *x);
-	void onTrapReceived(const std::vector<Snmp::PduPtr>& values);
+	static int globalTrapCallback(int i, netsnmp_session *s, int j, netsnmp_pdu *p, void *x);
+	static bool toSnmpValue(const netsnmp_vardata& rawSnmpValue, const u_char& rawSnmpType, SnmpValue& value);
+	void onTrapReceived(const std::string& src, netsnmp_pdu *pdu);
 	std::mutex m_mutex;
 
 public:
