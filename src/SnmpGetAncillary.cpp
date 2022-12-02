@@ -69,6 +69,36 @@ std::pair<SnmpStatus, int32_t> SnmpBackend::snmpGetInt( const std::string& oidOf
 
 }
 
+std::pair<SnmpStatus, uint32_t> SnmpBackend::snmpGetUInt( const std::string& oidOfInterest )
+{
+	netsnmp_variable_list *vars;
+	uint32_t value(0);
+	PduPtr response = snmpGet ( oidOfInterest );
+
+	if (response)
+	{
+
+		/* manipulate the information ourselves */
+		for(vars = response->variables; vars; vars = vars->next_variable)
+		{
+			if (vars->type == ASN_UNSIGNED)
+			{
+				value = static_cast<uint32_t>(*vars->val.integer); // net-snmp transmits unsigned value via signed union element :(
+				return std::pair<SnmpStatus, uint32_t>(Snmp_Good, value);
+			}
+			else
+			{
+				LOG(Log::TRC, LogComponentLevels::mule()) << "There is no such variable name in this MIB. Type: 0x" << std::hex << (int)(vars->type)
+								<< ". Failed OID: " << oidOfInterest;
+				return std::pair<SnmpStatus, uint32_t>(Snmp_BadNoDataAvailable, value);
+			}
+		}
+
+	}
+
+	return std::pair<SnmpStatus, uint32_t>(Snmp_Bad, value);		
+}
+
 std::pair<SnmpStatus, std::string> SnmpBackend::snmpGetString( const std::string& oidOfInterest )
 {
 
