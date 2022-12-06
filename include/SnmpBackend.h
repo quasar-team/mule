@@ -130,6 +130,7 @@ private:
 
 public:
 	std::pair<SnmpStatus, int32_t> snmpGetInt( const std::string& oidOfInterest );
+	std::pair<SnmpStatus, uint32_t> snmpGetUInt( const std::string& oidOfInterest );
 	std::pair<SnmpStatus, unsigned char > snmpGetBoolean( const std::string& oidOfInterest );
 	std::pair<SnmpStatus, std::string> snmpGetString( const std::string& oidOfInterest );
 	std::pair<SnmpStatus, std::string> snmpGetTime( const std::string& oidOfInterest );
