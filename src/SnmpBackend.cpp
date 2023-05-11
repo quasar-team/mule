@@ -502,7 +502,9 @@ std::pair<oid*, size_t> SnmpBackend::securityProtocolToOidDetails( const std::st
 {
 	if (protocol == "MD5") 	return std::make_pair(usmHMACMD5AuthProtocol, USM_AUTH_PROTO_MD5_LEN);
 	if (protocol == "SHA") 	return std::make_pair(usmHMACSHA1AuthProtocol, USM_AUTH_PROTO_SHA_LEN);
+#ifndef DISABLE_DES	
 	if (protocol == "DES") 	return std::make_pair(usmDESPrivProtocol, USM_PRIV_PROTO_DES_LEN);
+#endif
 	if (protocol == "AES") 	return std::make_pair(usmAESPrivProtocol, USM_PRIV_PROTO_AES_LEN);
 	snmp_throw_runtime_error_with_origin("invalid security protocol string received [" + protocol + "], valid options are [MD5|SHA|DES|AES]");
 }
