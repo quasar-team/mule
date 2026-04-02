@@ -27,8 +27,8 @@
 
 message(STATUS "Building mule")
 
-project(mule CXX)
 cmake_minimum_required(VERSION 3.0)
+project(mule CXX)
 
 # C++ standard set
 set(CMAKE_CXX_STANDARD 17) # required for variant
