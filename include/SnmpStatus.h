@@ -29,6 +29,8 @@
  */
 #pragma once
 
+#include <cstdint>
+
 namespace Snmp {
 
 enum SnmpStatus : uint32_t
