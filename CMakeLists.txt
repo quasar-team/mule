@@ -34,11 +34,20 @@ cmake_minimum_required(VERSION 3.0)
 set(CMAKE_CXX_STANDARD 17) # required for variant
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
+option(STANDALONE_BUILD "Build as a standalone library (e.g. for CI)" OFF)
+
 include_directories( include )
+
+if(STANDALONE_BUILD)
+  if(NOT DEFINED LOGIT_INCLUDE_DIR)
+    message(FATAL_ERROR "STANDALONE_BUILD requires -DLOGIT_INCLUDE_DIR=<path to LogIt/include>")
+  endif()
+  include_directories(${LOGIT_INCLUDE_DIR})
+endif()
 
 add_library( mule OBJECT
              src/Oid.cpp
              src/SnmpBackend.cpp
-             src/SnmpGetAncillary.cpp 
+             src/SnmpGetAncillary.cpp
              src/MuleLogComponents.cpp
             )
