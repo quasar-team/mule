@@ -1,0 +1,32 @@
+name: CI
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+    branches: [master]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        container: [almalinux:9, almalinux:10]
+    container: ${{ matrix.container }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: >
+          dnf install -y cmake gcc-c++ make git
+          net-snmp-devel
+
+      - name: Clone LogIt
+        run: git clone --depth 1 https://github.com/quasar-team/LogIt.git /tmp/LogIt
+
+      - name: Configure
+        run: cmake -B build -DSTANDALONE_BUILD=ON -DLOGIT_INCLUDE_DIR=/tmp/LogIt/include
+
+      - name: Build
+        run: cmake --build build -j$(nproc)
