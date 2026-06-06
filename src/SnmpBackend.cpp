@@ -36,12 +36,34 @@
 #include <thread>
 #include <future>
 #include <chrono>
+#include <algorithm>
+#include <cerrno>
+#include <cstdlib>
 #include <netdb.h>
+#include <sys/select.h>
+#include <sys/time.h>
 
 using Mule::LogComponentLevels;
 
 namespace
 {
+struct BoundedAsyncResult { int done = 0; int status = STAT_TIMEOUT; netsnmp_pdu* resp = nullptr; };
+
+int boundedAsyncCallback( int operation, netsnmp_session* /*session*/, int /*reqid*/, netsnmp_pdu* pdu, void* magic )
+{
+	auto* result = static_cast<BoundedAsyncResult*>( magic );
+	if ( operation == NETSNMP_CALLBACK_OP_RECEIVED_MESSAGE && pdu != nullptr )
+	{
+		result->resp = snmp_clone_pdu( pdu );
+		result->status = ( result->resp != nullptr ) ? STAT_SUCCESS : STAT_ERROR;
+	}
+	else
+	{
+		result->status = STAT_TIMEOUT;   // TIMED_OUT / SEND_FAILED / DISCONNECT
+	}
+	result->done = 1;
+	return 1;
+}
 std::string resolveWithTimeout( const std::string& host, std::chrono::milliseconds timeout )
 {
 	auto resolveOnce = []( const std::string& h, int flags ) -> std::string {
@@ -104,6 +126,19 @@ SnmpBackend::SnmpBackend(const std::string& hostname,
 				m_snmpMaxRetries(snmpMaxRetries),
 				m_snmpTimeoutUs(snmpTimeoutUs)
 {
+	const long nominalUs = static_cast<long>( m_snmpTimeoutUs ) * ( m_snmpMaxRetries + 1 );
+	if ( const char* env = std::getenv( "MULE_SNMP_HARD_DEADLINE_MS" ) )
+	{
+		m_hardDeadlineUs = std::max<long>( 1000L, std::atol( env ) * 1000L );
+		if ( m_hardDeadlineUs < nominalUs )
+			LOG(Log::WRN, LogComponentLevels::mule()) << "MULE_SNMP_HARD_DEADLINE_MS ("
+				<< ( m_hardDeadlineUs / 1000 ) << " ms) is below the SNMP retry budget ("
+				<< ( nominalUs / 1000 ) << " ms); healthy-but-slow requests may be aborted.";
+	}
+	else
+	{
+		m_hardDeadlineUs = std::max<long>( nominalUs * 2 + 1000000L, 4000000L );
+	}
 }
 
 void SnmpBackend::connect()
@@ -340,6 +375,60 @@ std::vector<Oid> SnmpBackend::snmpDeviceWalk ( const std::string& seedOid )
  	return walkedOids;
 }
 
+int SnmpBackend::boundedSynchResponse( netsnmp_pdu* pdu, netsnmp_pdu** response )
+{
+	*response = nullptr;
+	BoundedAsyncResult result;
+
+	if ( snmp_sess_async_send( m_sessp, pdu, boundedAsyncCallback, &result ) == 0 )
+	{
+		snmp_free_pdu( pdu );
+		return STAT_ERROR;
+	}
+
+	const auto deadline = std::chrono::steady_clock::now() + std::chrono::microseconds( m_hardDeadlineUs );
+
+	while ( !result.done )
+	{
+		const auto now = std::chrono::steady_clock::now();
+		if ( now >= deadline )
+			break;   // hard-deadline overrun -> abandon below
+
+		int numfds = 0, block = 0;
+		fd_set fdset; FD_ZERO( &fdset );
+		struct timeval nsTimeout { 0, 0 };
+		snmp_sess_select_info( m_sessp, &numfds, &fdset, &nsTimeout, &block );
+
+		const long remUs = std::chrono::duration_cast<std::chrono::microseconds>( deadline - now ).count();
+		const long nsUs  = static_cast<long>( nsTimeout.tv_sec ) * 1000000L + nsTimeout.tv_usec;
+		long sliceUs = ( block || nsUs > remUs ) ? remUs : nsUs;
+		if ( sliceUs < 10000L )
+			sliceUs = std::min<long>( 10000L, remUs );
+		struct timeval selectTimeout { sliceUs / 1000000, sliceUs % 1000000 };
+
+		const int count = select( numfds, &fdset, nullptr, nullptr, &selectTimeout );
+		if ( count > 0 )
+			snmp_sess_read( m_sessp, &fdset );   // dispatches boundedAsyncCallback on the matching reply
+		else if ( count == 0 )
+			snmp_sess_timeout( m_sessp );        // net-snmp retransmit / timeout bookkeeping
+		else if ( errno != EINTR )
+			break;                               // genuine select() error
+	}
+
+	if ( !result.done )
+	{
+		if ( result.resp ) { snmp_free_pdu( result.resp ); result.resp = nullptr; }
+		LOG(Log::ERR, LogComponentLevels::mule()) << "[" << m_hostname
+			<< "] SNMP request exceeded hard deadline (" << ( m_hardDeadlineUs / 1000 )
+			<< " ms) - aborting stuck request and closing session.";
+		closeSession();
+		return STAT_TIMEOUT;
+	}
+
+	*response = result.resp;   // cloned PDU, owned by caller (freed via snmp_free_pdu)
+	return result.status;
+}
+
 PduPtr SnmpBackend::snmpGet( const std::string& oidOfInterest )
 {
 
@@ -368,7 +457,7 @@ PduPtr SnmpBackend::snmpGet( const std::string& oidOfInterest )
 	{
 		std::lock_guard<std::mutex> guard(m_mutex);
 		if ( m_sessp == nullptr ) snmp_throw_runtime_error_with_origin("SNMP session not opened - call connect() before SNMP operations");
-		int snmp_status = snmp_sess_synch_response( m_sessp, pdu, &response );
+		int snmp_status = boundedSynchResponse( pdu, &response );
 		throwIfSnmpResponseError( snmp_status, response );
 	}
 	catch (const std::exception& e)
@@ -443,7 +532,7 @@ SnmpStatus SnmpBackend::snmpSet( const std::string& oidOfInterest, snmpSetValue 
 	{
 		std::lock_guard<std::mutex> guard(m_mutex);
 		if ( m_sessp == nullptr ) snmp_throw_runtime_error_with_origin("SNMP session not opened - call connect() before SNMP operations");
-		int snmp_status = snmp_sess_synch_response( m_sessp, pdu, &response );
+		int snmp_status = boundedSynchResponse( pdu, &response );
 		status = throwIfSnmpResponseError( snmp_status, response );
 	}
 	catch (const std::exception& e)
@@ -463,7 +552,7 @@ netsnmp_pdu * SnmpBackend::snmpGetNext( const std::string& oidOfInterest )
 
 	LOG(Log::TRC, LogComponentLevels::mule()) << "SNMP get next OID:" << oidOfInterest;
 
-	netsnmp_pdu *pdu, *response;
+	netsnmp_pdu *pdu = nullptr, *response = nullptr;
 
 	pdu = snmp_pdu_create(SNMP_MSG_GETNEXT);
 
@@ -477,7 +566,7 @@ netsnmp_pdu * SnmpBackend::snmpGetNext( const std::string& oidOfInterest )
 	{
 		std::lock_guard<std::mutex> guard(m_mutex);
 		if ( m_sessp == nullptr ) snmp_throw_runtime_error_with_origin("SNMP session not opened - call connect() before SNMP operations");
-		int snmp_status = snmp_sess_synch_response( m_sessp, pdu, &response );
+		int snmp_status = boundedSynchResponse( pdu, &response );
 		throwIfSnmpResponseError( snmp_status, response );
 	}
 	catch (const std::exception& e)
@@ -514,6 +603,9 @@ std::vector<oid> SnmpBackend::prepareOid ( const std::string& oidOfInterest )
 
 SnmpStatus SnmpBackend::throwIfSnmpResponseError ( int status, netsnmp_pdu *response )
 {
+
+	if (status == STAT_SUCCESS && response == nullptr)
+		snmp_throw_runtime_error_with_origin( "SNMP reported success but the response PDU is null" );
 
 	if (status == STAT_SUCCESS && response->errstat == SNMP_ERR_NOERROR)
 	{

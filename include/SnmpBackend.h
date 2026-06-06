@@ -107,6 +107,8 @@ private:
 	void openSession ( snmp_session snmpSession );
 	void closeSession ();
 
+	int boundedSynchResponse ( netsnmp_pdu* pdu, netsnmp_pdu** response );
+
 	std::string m_hostname;
 	std::string m_snmpVersion;
 	std::string m_community;
@@ -119,6 +121,7 @@ private:
 
 	const int m_snmpMaxRetries;
 	const int m_snmpTimeoutUs;
+	long m_hardDeadlineUs = 0;   // bounded-GET hard ceiling (us), cached in the constructor
 
 	void * m_sessp = nullptr;
 	snmp_session m_snmpSession;
