@@ -104,6 +104,10 @@ SnmpBackend::SnmpBackend(const std::string& hostname,
 				m_snmpMaxRetries(snmpMaxRetries),
 				m_snmpTimeoutUs(snmpTimeoutUs)
 {
+}
+
+void SnmpBackend::connect()
+{
 
 	try
 	{
@@ -127,13 +131,12 @@ SnmpBackend::SnmpBackend(const std::string& hostname,
 		throw;
 	}
 
-};
+}
 
 SnmpBackend::~SnmpBackend()
 {
-
-	// RAII cleanup here
-	closeSession();
+	if ( m_sessp != nullptr )
+		closeSession();
 
 };
 
@@ -353,6 +356,7 @@ PduPtr SnmpBackend::snmpGet( const std::string& oidOfInterest )
 	netsnmp_pdu *response = nullptr;
 	try
 	{
+		if ( m_sessp == nullptr ) snmp_throw_runtime_error_with_origin("SNMP session not opened - call connect() before SNMP operations");
 		std::lock_guard<std::mutex> guard(m_mutex);
 		int snmp_status = snmp_sess_synch_response( m_sessp, pdu, &response );
 		throwIfSnmpResponseError( snmp_status, response );
@@ -427,6 +431,7 @@ SnmpStatus SnmpBackend::snmpSet( const std::string& oidOfInterest, snmpSetValue 
 
 	try
 	{
+		if ( m_sessp == nullptr ) snmp_throw_runtime_error_with_origin("SNMP session not opened - call connect() before SNMP operations");
 		std::lock_guard<std::mutex> guard(m_mutex);
 		int snmp_status = snmp_sess_synch_response( m_sessp, pdu, &response );
 		status = throwIfSnmpResponseError( snmp_status, response );
@@ -460,6 +465,7 @@ netsnmp_pdu * SnmpBackend::snmpGetNext( const std::string& oidOfInterest )
 
 	try
 	{
+		if ( m_sessp == nullptr ) snmp_throw_runtime_error_with_origin("SNMP session not opened - call connect() before SNMP operations");
 		std::lock_guard<std::mutex> guard(m_mutex);
 		int snmp_status = snmp_sess_synch_response( m_sessp, pdu, &response );
 		throwIfSnmpResponseError( snmp_status, response );

@@ -91,6 +91,8 @@ public:
 
 	~SnmpBackend();
 
+	void connect();
+
 	// CppCoreGuidelines C.21
 	SnmpBackend(const SnmpBackend&) = delete;
     SnmpBackend& operator=(const SnmpBackend&) = delete;
@@ -116,9 +118,9 @@ private:
 	const int m_snmpMaxRetries;
 	const int m_snmpTimeoutUs;
 
-	void * m_sessp;
+	void * m_sessp = nullptr;
 	snmp_session m_snmpSession;
-	netsnmp_session * m_snmpSessionHandle;
+	netsnmp_session * m_snmpSessionHandle = nullptr;
 
 	SnmpStatus throwIfSnmpResponseError ( int status, netsnmp_pdu *response );
 	std::vector<oid> prepareOid ( const std::string& oidOfInterest );
