@@ -33,7 +33,42 @@
 #include <SnmpDefinitions.h>
 #include <MuleLogComponents.h>
 
+#include <thread>
+#include <future>
+#include <chrono>
+#include <netdb.h>
+
 using Mule::LogComponentLevels;
+
+namespace
+{
+std::string resolveWithTimeout( const std::string& host, std::chrono::milliseconds timeout )
+{
+	auto resolveOnce = []( const std::string& h, int flags ) -> std::string {
+		addrinfo hints{};
+		hints.ai_family = AF_INET;   // IPv4, matching net-snmp's default udp: transport
+		hints.ai_socktype = SOCK_DGRAM;
+		hints.ai_flags = flags;
+		addrinfo* res = nullptr;
+		if ( getaddrinfo( h.c_str(), nullptr, &hints, &res ) != 0 || !res )
+			return {};
+		char ip[NI_MAXHOST] = {0};
+		getnameinfo( res->ai_addr, res->ai_addrlen, ip, sizeof(ip), nullptr, 0, NI_NUMERICHOST );
+		freeaddrinfo( res );
+		return ip;
+	};
+
+	if ( std::string ip = resolveOnce( host, AI_NUMERICHOST ); !ip.empty() )
+		return ip;
+
+	auto promise = std::make_shared<std::promise<std::string>>();
+	std::future<std::string> future = promise->get_future();
+	std::thread( [promise, host, resolveOnce]() { promise->set_value( resolveOnce( host, 0 ) ); } ).detach();
+	if ( future.wait_for( timeout ) == std::future_status::ready )
+		return future.get();
+	return {};
+}
+} // anonymous namespace
 
 namespace Snmp
 {
@@ -207,6 +242,11 @@ void SnmpBackend::openSession ( snmp_session snmpSession )
 
 	try
 	{
+		const std::string ip = resolveWithTimeout( snmpSession.peername, std::chrono::seconds(5) );
+		if ( ip.empty() )
+			snmp_throw_runtime_error_with_origin( "Timed out or failed resolving SNMP host " + getHostName() );
+		snmpSession.peername = const_cast<char*>( ip.c_str() );
+
 		m_sessp = snmp_sess_open(&snmpSession);
 		m_snmpSessionHandle = snmp_sess_session( m_sessp );
 
