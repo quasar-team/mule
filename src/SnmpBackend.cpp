@@ -111,6 +111,7 @@ void SnmpBackend::connect()
 
 	try
 	{
+		if ( m_sessp != nullptr ) disconnect(); // idempotent: never leak a live session on re-connect
 		const auto envMIBS = getenv("MIBS");
 		const auto envMIBDIRS = getenv("MIBDIRS");
 		LOG(Log::INF, LogComponentLevels::mule()) << __FUNCTION__ << " calling init_snmp with $env:MIBS ["<<( envMIBS? envMIBS : "NULL" )<<"] $env.MIBDIRS ["<<( envMIBDIRS? envMIBDIRS : "NULL" )<<"]";
@@ -272,7 +273,16 @@ void SnmpBackend::closeSession ()
 
 	snmp_sess_close( m_sessp );
 	SOCK_CLEANUP;
+	m_sessp = nullptr;
+	m_snmpSessionHandle = nullptr;
 
+}
+
+void SnmpBackend::disconnect ()
+{
+	std::lock_guard<std::mutex> guard(m_mutex);
+	if ( m_sessp != nullptr )
+		closeSession();
 }
 
 std::vector<Oid> SnmpBackend::snmpDeviceWalk ( const std::string& seedOid )
@@ -356,8 +366,8 @@ PduPtr SnmpBackend::snmpGet( const std::string& oidOfInterest )
 	netsnmp_pdu *response = nullptr;
 	try
 	{
-		if ( m_sessp == nullptr ) snmp_throw_runtime_error_with_origin("SNMP session not opened - call connect() before SNMP operations");
 		std::lock_guard<std::mutex> guard(m_mutex);
+		if ( m_sessp == nullptr ) snmp_throw_runtime_error_with_origin("SNMP session not opened - call connect() before SNMP operations");
 		int snmp_status = snmp_sess_synch_response( m_sessp, pdu, &response );
 		throwIfSnmpResponseError( snmp_status, response );
 	}
@@ -431,8 +441,8 @@ SnmpStatus SnmpBackend::snmpSet( const std::string& oidOfInterest, snmpSetValue 
 
 	try
 	{
-		if ( m_sessp == nullptr ) snmp_throw_runtime_error_with_origin("SNMP session not opened - call connect() before SNMP operations");
 		std::lock_guard<std::mutex> guard(m_mutex);
+		if ( m_sessp == nullptr ) snmp_throw_runtime_error_with_origin("SNMP session not opened - call connect() before SNMP operations");
 		int snmp_status = snmp_sess_synch_response( m_sessp, pdu, &response );
 		status = throwIfSnmpResponseError( snmp_status, response );
 	}
@@ -465,8 +475,8 @@ netsnmp_pdu * SnmpBackend::snmpGetNext( const std::string& oidOfInterest )
 
 	try
 	{
-		if ( m_sessp == nullptr ) snmp_throw_runtime_error_with_origin("SNMP session not opened - call connect() before SNMP operations");
 		std::lock_guard<std::mutex> guard(m_mutex);
+		if ( m_sessp == nullptr ) snmp_throw_runtime_error_with_origin("SNMP session not opened - call connect() before SNMP operations");
 		int snmp_status = snmp_sess_synch_response( m_sessp, pdu, &response );
 		throwIfSnmpResponseError( snmp_status, response );
 	}

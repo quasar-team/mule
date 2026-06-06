@@ -93,6 +93,8 @@ public:
 
 	void connect();
 
+	void disconnect();
+
 	// CppCoreGuidelines C.21
 	SnmpBackend(const SnmpBackend&) = delete;
     SnmpBackend& operator=(const SnmpBackend&) = delete;
