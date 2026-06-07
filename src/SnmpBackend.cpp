@@ -131,9 +131,11 @@ SnmpBackend::SnmpBackend(const std::string& hostname,
 	{
 		m_hardDeadlineUs = std::max<long>( 1000L, std::atol( env ) * 1000L );
 		if ( m_hardDeadlineUs < nominalUs )
+		{
 			LOG(Log::WRN, LogComponentLevels::mule()) << "MULE_SNMP_HARD_DEADLINE_MS ("
 				<< ( m_hardDeadlineUs / 1000 ) << " ms) is below the SNMP retry budget ("
 				<< ( nominalUs / 1000 ) << " ms); healthy-but-slow requests may be aborted.";
+		}
 	}
 	else
 	{
