@@ -131,7 +131,7 @@ private:
 	std::vector<oid> prepareOid ( const std::string& oidOfInterest );
 	int securityLevelToInt ( const std::string & securityLevel );
 	std::pair<oid*, size_t> securityProtocolToOidDetails( const std::string & protocol );
-	std::string oidToString(const oid * objid, size_t objidlen, const netsnmp_variable_list * variable);
+	std::string oidToString(const oid * objid, size_t objidlen);
 	std::pair<SnmpStatus, unsigned char > translateIntToBoolean ( int32_t rawValue );
 
 	std::mutex m_mutex;
@@ -167,7 +167,7 @@ public:
 	SnmpStatus snmpSet( const std::string& oidOfInterest, snmpSetValue & value );
 	PduPtr snmpGet( const std::string& oidOfInterest );
 
-	std::string getHostName() { return m_hostname; };
+	std::string getHostName() { return m_hostname; }
 
 };
 

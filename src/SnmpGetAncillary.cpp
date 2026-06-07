@@ -305,7 +305,7 @@ std::pair<SnmpStatus, float> SnmpBackend::snmpGetFloatFromInt( const std::string
 	return { std::get<0>(intResult), scaleFactor * std::get<1>(intResult) };
 }
 
-std::string SnmpBackend::oidToString(const oid * objid, size_t objidlen, const netsnmp_variable_list * vars)
+std::string SnmpBackend::oidToString(const oid * objid, size_t objidlen)
 {
 
 	std::string oid;

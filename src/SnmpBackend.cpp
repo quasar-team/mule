@@ -176,7 +176,7 @@ SnmpBackend::~SnmpBackend()
 	if ( m_sessp != nullptr )
 		closeSession();
 
-};
+}
 
 snmp_session SnmpBackend::createSessionV2 ()
 {
@@ -343,7 +343,7 @@ std::vector<Oid> SnmpBackend::snmpDeviceWalk ( const std::string& seedOid )
 	 		for(vars = response->variables; vars; vars = vars->next_variable)
 	 		{
 	 			currentDeviceOid = nextDeviceOid;
-	 			nextDeviceOid(oidToString(vars->name, vars->name_length, vars));
+	 			nextDeviceOid(oidToString(vars->name, vars->name_length));
 	 		}
 
 	 		snmp_free_pdu(response);
