@@ -276,7 +276,8 @@ std::pair<SnmpStatus, float> SnmpBackend::snmpGetFloatFromString( const std::str
 					}
 					catch (const std::exception& e)
 					{
-						LOG(Log::ERR, LogComponentLevels::mule()) << e.what() << ": Cannot convert sensor value. Due to sensor type? (OID:" << oidOfInterest << ")";
+						LOG(Log::DBG, LogComponentLevels::mule()) << e.what() << ": Cannot convert sensor value. Due to sensor type? (OID:" << oidOfInterest << ")";
+						return std::pair<SnmpStatus, float>(Snmp_BadNoDataAvailable, value);
 					}
 				}
 				return std::pair<SnmpStatus, float>(Snmp_Good, value);
