@@ -196,7 +196,7 @@ snmp_session SnmpBackend::createSessionV2 ()
 	else
 		snmpSession.version = SNMP_VERSION_2c;
 
-	snmpSession.community = (u_char*)(m_community.c_str());
+	snmpSession.community = reinterpret_cast<u_char*>(const_cast<char*>(m_community.c_str()));
 	snmpSession.community_len = m_community.length();
 
 	return snmpSession;
@@ -234,7 +234,7 @@ snmp_session SnmpBackend::createSessionV3 ()
 	snmpSession.securityLevel = securityLevelToInt(m_securityLevel);
 
 	auto generateSecurityKey = [] (const std::string& type, const oid* protocol, const size_t protocolLength, const char* passphrase, u_char* keyDestination, size_t* keyLength) {
-		if (generate_Ku(protocol, static_cast<u_int>(protocolLength), (u_char *) passphrase, strlen(passphrase), keyDestination, keyLength) != SNMPERR_SUCCESS)
+		if (generate_Ku(protocol, static_cast<u_int>(protocolLength), reinterpret_cast<const u_char*>(passphrase), strlen(passphrase), keyDestination, keyLength) != SNMPERR_SUCCESS)
 		{
 			snmp_perror("mule");
 			snmp_log(LOG_ERR, "Error generating Ku from %s pass phrase. \n", type.c_str());
