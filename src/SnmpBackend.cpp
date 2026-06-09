@@ -234,7 +234,7 @@ snmp_session SnmpBackend::createSessionV3 ()
 	snmpSession.securityLevel = securityLevelToInt(m_securityLevel);
 
 	auto generateSecurityKey = [] (const std::string& type, const oid* protocol, const size_t protocolLength, const char* passphrase, u_char* keyDestination, size_t* keyLength) {
-		if (generate_Ku(protocol, protocolLength, (u_char *) passphrase, strlen(passphrase), keyDestination, keyLength) != SNMPERR_SUCCESS)
+		if (generate_Ku(protocol, static_cast<u_int>(protocolLength), (u_char *) passphrase, strlen(passphrase), keyDestination, keyLength) != SNMPERR_SUCCESS)
 		{
 			snmp_perror("mule");
 			snmp_log(LOG_ERR, "Error generating Ku from %s pass phrase. \n", type.c_str());
@@ -621,7 +621,7 @@ SnmpStatus SnmpBackend::throwIfSnmpResponseError ( int status, netsnmp_pdu *resp
 
 		if ( status == STAT_SUCCESS )
 		{
-			snmp_throw_runtime_error_with_origin( "Error in packet due to " + snmp_errstring(response->errstat) );
+			snmp_throw_runtime_error_with_origin( "Error in packet due to " + snmp_errstring(static_cast<int>(response->errstat)) );
 		}
 		else if ( status == STAT_ERROR )
 		{

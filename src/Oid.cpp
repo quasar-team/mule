@@ -64,7 +64,7 @@ void Oid::assign ( std::string oidOfInterest )
 	}
 	m_oidVector.push_back(oidOfInterest.substr(previous, current - previous));
 
-	m_oidSize = m_oidVector.size();
+	m_oidSize = static_cast<uint32_t>(m_oidVector.size());
 
 }
 

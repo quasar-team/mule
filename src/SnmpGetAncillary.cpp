@@ -52,7 +52,7 @@ std::pair<SnmpStatus, int32_t> SnmpBackend::snmpGetInt( const std::string& oidOf
 		{
 			if (vars->type == ASN_INTEGER)
 			{
-				value = *vars->val.integer;
+				value = static_cast<int32_t>(*vars->val.integer);
 				return std::pair<SnmpStatus, int32_t>(Snmp_Good, value);
 			}
 			else
@@ -148,7 +148,7 @@ std::pair<SnmpStatus, unsigned char > SnmpBackend::snmpGetBoolean( const std::st
 		{
 			if (vars->type == ASN_INTEGER)
 			{
-				value = *vars->val.integer;
+				value = static_cast<int32_t>(*vars->val.integer);
 				std::pair<SnmpStatus, unsigned char > castedValue = translateIntToBoolean ( value );
 				return std::pair<SnmpStatus, unsigned char >( castedValue );
 			}
@@ -302,7 +302,7 @@ std::pair<SnmpStatus, float> SnmpBackend::snmpGetFloatFromString( const std::str
 std::pair<SnmpStatus, float> SnmpBackend::snmpGetFloatFromInt( const std::string& oidOfInterest, const float& scaleFactor )
 {
 	const auto intResult = snmpGetInt(oidOfInterest);
-	return { std::get<0>(intResult), scaleFactor * std::get<1>(intResult) };
+	return { std::get<0>(intResult), scaleFactor * static_cast<float>(std::get<1>(intResult)) };
 }
 
 std::string SnmpBackend::oidToString(const oid * objid, size_t objidlen)
